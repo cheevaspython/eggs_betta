@@ -1,0 +1,44 @@
+stages:
+    - deploy_back
+    - build_backend
+
+stage_build:
+    stage: build_backend
+    image: python:buster
+    tags:
+      - build_back
+    script:
+      - apt-get -y update
+      - apt-get -y install git curl
+      - apt-get -y install libpq-dev python3-dev gcc musl-dev
+      - git clone https://$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD@gitlab.com/pythonprojects23/pilligrim.git 
+      - cd pilligrim
+      - git checkout develop
+      - ls -al
+      - export PYTHONDONTWRITEBYTECODE='1'
+      - export PYTHONBUFFERED='1'
+      - curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+      - pip install -U setuptools
+      - pip install -r req_docker_build.txt
+      - ./manage.py test
+      - gunicorn -D --bind 0.0.0.0:8080 config.wsgi 
+      - mv product_eggs/tests/test_response_prod product_eggs/tests/test_response.py
+
+
+stage_deploy_back:
+    stage: deploy_back
+    tags:
+      - shell
+    script:
+      - cd /home/admin/code/for_clone
+      - source ../venv/bin/activate
+      - rm -fr pilligrim
+      - git clone https://$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD@gitlab.com/pythonprojects23/pilligrim.git 
+      - cd pilligrim
+      - git checkout develop
+      - rsync -ar . /home/admin/code/pilligrim/
+      - cd /home/admin/code/pilligrim
+      - ./setenv.sh
+      - git checkout develop
+      - mv config/settings_prod.py config/settings.py
+
