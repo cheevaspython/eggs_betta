@@ -128,13 +128,13 @@ class AdditionalExpenseData():
     """
     comment: str
     date_time: str
-    expence: str | float
+    expense: str | float
     owner_name: str
     owner_id: str | int
 
     def __post_init__(self):
         try:
-            self.expence = float(self.expence)
+            self.expense = float(self.expense)
             self.owner_id = int(self.owner_id)
         except TypeError:
             serializers.ValidationError(
@@ -142,10 +142,5 @@ class AdditionalExpenseData():
     
     def __getitem__(self, item):
         return getattr(self, item)
-
-
-
-
-
 
 

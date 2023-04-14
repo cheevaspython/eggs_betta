@@ -70,7 +70,7 @@ class BaseDealEggsModel(models.Model):
         BuyerCardEggs, on_delete=models.PROTECT, verbose_name='Покупатель',
     )
     seller = models.ForeignKey(
-        SellerCardEggs, on_delete=models.PROTECT, verbose_name='Покупатель',
+        SellerCardEggs, on_delete=models.PROTECT, verbose_name='Продавец',
     )
     owner = models.ForeignKey(
         CustomUser, related_name='deal', verbose_name='Автор',
@@ -115,9 +115,6 @@ class BaseDealEggsModel(models.Model):
     )
     import_application = models.BooleanField(
         editable=True, default=False, verbose_name='Импорт',
-    )
-    post_payment_app_for_us = models.BooleanField(
-        editable=True, default=False, verbose_name='Рассрочка для нас',
     )
     calc_ready = models.BooleanField(
         editable=True, default=False, verbose_name='Просчет готов',

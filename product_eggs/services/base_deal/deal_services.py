@@ -26,7 +26,6 @@ def create_relation_deal_status_and_deal_docs(
         deal_doc_models.create()
         deal_doc_models.new_models[0].origins = deal_doc_models.new_models[1]
         instance.documents = deal_doc_models.new_models[0]
-        instance.deal_status = 1 
         instance.save()
     else:
         raise serializers.ValidationError(

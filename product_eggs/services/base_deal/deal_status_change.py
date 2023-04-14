@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from product_eggs.models.base_deal import BaseDealEggsModel
+from product_eggs.permissions.validate_user import can_edit_deal
 from product_eggs.services.data_class import BaseMessageForm, \
     MessageUserForDealStatus
 from product_eggs.services.decorators import try_decorator_param
@@ -35,9 +36,9 @@ class DealStatusChanger():
         5. if == 9 -> 
         """
         if self.instance.deal_status_ready_to_change:
-            if 1 <= self.instance.deal_status < 8:
+            if self.instance.deal_status <= 8:
                 return 'change'
-            elif self.instance.deal_status == 8:
+            elif self.instance.deal_status == 9:
                 return 'complete'
             else:
                 return 'pass'
@@ -57,9 +58,8 @@ class DealStatusChanger():
             case 'pass':
                 pass
             case 'change' if self.check_user_to_can_change():
-                print('--------')
-                self._send_action()
                 self._change_deal_status()
+                self._send_action()
             case 'complete':
                 self.instance.status += 1
                 search_done_base_deal_messages_and_turn_off(self.instance)
@@ -80,7 +80,6 @@ class DealStatusChanger():
                 self.instance,
                 message_user.owner)
         )
-        print(action)
         action.create_message()
 
     def _change_deal_status(self):
@@ -89,7 +88,7 @@ class DealStatusChanger():
         set action to process, save
         """
         self.instance.deal_status += 1
-        self.instance.deal_in_process_to_change = True
+        self.instance.deal_status_ready_to_change = False
         self.instance.save()
 
     def check_user_to_can_change(self) -> bool:
@@ -97,16 +96,21 @@ class DealStatusChanger():
         Compare entry user and action user | users.role 
         in deal status library
         """
+        #check status
         if self.instance.deal_status == 0 \
                 or self.instance.deal_status > 8:
             return False
+        #check superuser
+        if self.user in can_edit_deal():
+            return True
+
         message_user = self._get_message_and_user()
         try:
             if isinstance(message_user.owner, CustomUser):
                 return True if self.user == message_user.owner else False
-            return True if self.user.role == message_user.owner[0].role else False
+            return True if self.user.role == message_user.owner[-1].role else False
         except IndexError as e:
-            raise serializers.ValidationError('you havent some users role! {e}')
+            raise serializers.ValidationError(f'you havent some users role! {e}')
     
     @try_decorator_param(('AttributeError',))
     def _get_message_and_user(self) -> MessageUserForDealStatus:

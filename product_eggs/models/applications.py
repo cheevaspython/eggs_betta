@@ -112,9 +112,6 @@ class ApplicationFromSellerBaseEggs(AbstractApplicationEggs):
         blank=True, null=True,
         upload_to='uploads/', verbose_name='Подгружаемые документы',
     )
-    pre_payment_application = models.BooleanField(
-        editable=True, default=True, verbose_name='Предоплата',
-    )
     import_application = models.BooleanField(
         editable=True, default=False, verbose_name='Импорт',
     )

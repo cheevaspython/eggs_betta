@@ -2,7 +2,8 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from product_eggs.serializers.limit_duty_serializers import StatisticClientSerializer
+from product_eggs.serializers.balance_serializers import StatisticBuyerClientSerializer, \
+    StatisticSellerClientSerializer
 from product_eggs.serializers.base_client_serializers import BuyerCardEggsDetailSerializer, \
     SellerCardEggsDetailSerializer
 from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
@@ -11,7 +12,7 @@ from product_eggs.permissions.validate_user import validate_user_for_statistic_p
     validate_user_for_statistic_page_list
 from product_eggs.services.balance_services import convert_serializer_data_to_list_of_dicts
 from product_eggs.services.raw.balance import get_queryset_deals_debt_by_client, \
-    get_queryset_deal_where_balance_seller_true, get_queryset_where_debt_positive 
+    get_queryset_seller_balance, get_queryset_buyer_debt_positive 
     
 
 class BalanceEggsViewSet(viewsets.ViewSet):
@@ -20,7 +21,7 @@ class BalanceEggsViewSet(viewsets.ViewSet):
     For Seller and Buyer.
     """
     queryset = BuyerCardEggs.objects.all() 
-    serializer_class = StatisticClientSerializer
+    serializer_class = StatisticSellerClientSerializer
 
     @action(detail=True, methods=['get'])
     def list_buyer(self, request, pk=None) -> Response:  
@@ -28,8 +29,8 @@ class BalanceEggsViewSet(viewsets.ViewSet):
         Balance buyer model.
         """
         validate_user_for_statistic_page_list(request)
-        serializer = StatisticClientSerializer(
-            get_queryset_where_debt_positive(), many=True)
+        serializer = StatisticBuyerClientSerializer(
+            get_queryset_buyer_debt_positive(), many=True)
         edited_data = convert_serializer_data_to_list_of_dicts(serializer.data)
         return Response(edited_data, status=status.HTTP_200_OK)    
 
@@ -39,8 +40,8 @@ class BalanceEggsViewSet(viewsets.ViewSet):
         Balance seller model.
         """
         validate_user_for_statistic_page_list(request)
-        serializer = SellerCardEggsDetailSerializer(
-            get_queryset_deal_where_balance_seller_true(), many=True)   
+        serializer = StatisticSellerClientSerializer(
+            get_queryset_seller_balance(), many=True)   
         return Response(serializer.data, status=status.HTTP_200_OK)    
 
     @action(detail=True, methods=['get'])

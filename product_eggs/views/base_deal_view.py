@@ -20,8 +20,8 @@ from product_eggs.services.base_deal.conf_calc_service import check_calc_ready_f
     check_field_expence_create_new_model, check_fields_values_to_calc_ready, \
     check_validated_data_for_logic_conf
 from product_eggs.services.base_deal.deal_status_change import DealStatusChanger
-from product_eggs.services.base_deal.deal_services import check_pre_status_for_create, create_relation_deal_status_and_deal_docs, \
-    status_check
+from product_eggs.services.base_deal.deal_services import check_pre_status_for_create, \
+    create_relation_deal_status_and_deal_docs, status_check
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from product_eggs.services.raw.raw_query_base_deal import status_calc_list_query_is_active, \
     status_conf_calc_list_query_is_active, status_deal_list_query_is_active
@@ -105,7 +105,7 @@ class BaseDealModelViewSet(viewsets.ViewSet):
             eq_requestuser_is_customuser(self.request.user))
         instance = BaseDealEggsModel.objects.get(pk=pk)
         check_pre_status_for_create(instance, 1)
-        serializer = CalculateEggsSerializer(instance, data=request.data, partial=True) 
+        serializer = ConfirmedCalculateEggsSerializer(instance, data=request.data, partial=True) 
         serializer.is_valid(raise_exception=True)
 
         if isinstance(serializer.validated_data, OrderedDict):
@@ -161,17 +161,17 @@ class BaseDealModelViewSet(viewsets.ViewSet):
     @action(detail=True, methods=['patch'])
     def create_deal(self, request, pk=None) -> Response:  
         check_create_deal_permission(
-                eq_requestuser_is_customuser(self.request.user))
+            eq_requestuser_is_customuser(self.request.user))
         instance = BaseDealEggsModel.objects.get(pk=pk)  
         check_pre_status_for_create(instance, 2)
-        # create_relation_deal_status_and_deal_docs(instance)
+        create_relation_deal_status_and_deal_docs(instance)
         #search_done_base_deal_messages_and_turn_off(instance) #TODO
         serializer = BaseDealEggsSerializer(instance, data=request.data, partial=True) 
         serializer.is_valid(raise_exception=True)
 
         serializer.save()
 
-        if instance.post_payment_app_for_us:
+        if instance.postponement_pay_for_us > 0:
             instance.deal_status = 5
             instance.save()
             message = MessageLibrarrySend(
@@ -215,7 +215,13 @@ class BaseDealModelViewSet(viewsets.ViewSet):
             eq_requestuser_is_customuser(self.request.user))
         change.status_changer_main()
 
-        return Response(serializer.data, status=status.HTTP_200_OK)    
+        # return Response(serializer.data, status=status.HTTP_200_OK)    
+        serializer = CustomBaseDealEggsSerializer(
+            status_deal_list_query_is_active(pk), many=True) 
+        if init_logic_user(request.user):
+            return Response(get_return_edited_hide_data(serializer.data),
+                status=status.HTTP_200_OK)    
+        return Response(serializer.data, status=status.HTTP_200_OK)
 #
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def get_model(self, request, pk=None) -> Response:

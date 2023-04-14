@@ -6,13 +6,8 @@ from product_eggs.models.requisites import RequisitesEggs
 from product_eggs.models.documents import DocumentsContractEggsModel, \
     DocumentsBuyerEggsModel
 from product_eggs.models.tails import TailsContragentModelEggs
-from product_eggs.services.decorators import try_decorator_param
+from product_eggs.services.tails_calc import calc_client_tail_debt
 from users.models import CustomUser
-
-
-@try_decorator_param(('KeyError',), return_value=0)
-def calc_client_tail_debt(tail: TailsContragentModelEggs):
-    return tail.current_tail_form_one + tail.current_tail_form_two
 
 
 class BuyerCardEggs(AbstractClientCard, AbstractWarehouseCard):
@@ -47,10 +42,6 @@ class BuyerCardEggs(AbstractClientCard, AbstractWarehouseCard):
         CustomUser, related_name='buyer_manager',
         verbose_name='Менеджер',
         on_delete=models.SET_NULL, null=True
-    )
-    manager_details = models.CharField(
-        max_length=100,
-        verbose_name='Менеджер детали', null=True, 
     )
     balance = models.FloatField(
         default=0, null=True,
@@ -104,10 +95,6 @@ class SellerCardEggs(AbstractClientCard, AbstractAddressCard):
         CustomUser, related_name='seller_manager',
         verbose_name='Менеджер', 
         on_delete=models.SET_NULL, null=True,
-    )
-    manager_details = models.CharField(
-        max_length=100, verbose_name='Менеджер детали',
-        null=True, blank=True,
     )
     balance = models.FloatField(
         default=0, null=True,

@@ -22,7 +22,7 @@ class SellerCardEggsDetailSerializer(serializers.ModelSerializer):
             'name', 'inn', 'contact_person', 'phone', 'email', 'comment', 'general_manager',
             'requisites', 'current_requisites', 'prod_address_1', 'prod_address_2', 
             'prod_address_3', 'prod_address_4', 'prod_address_5', 'documents_contract', 
-            'current_contract', 'region', 'balance', 'manager', 'manager_details', 
+            'current_contract', 'region', 'balance', 'manager',  
         ]
 
 
@@ -37,7 +37,7 @@ class BuyerCardEggsDetailSerializer(serializers.ModelSerializer):
             'requisites', 'current_requisites', 'warehouse_address_1', 'warehouse_address_2', 
             'warehouse_address_3', 'warehouse_address_4', 'warehouse_address_5', 'documents_contract',
             'current_contract', 'pay_limit', 'region', 'balance_form_one', 'balance_form_one', 'docs_cash',
-            'manager', 'manager_details', 'pay_limit_cash', 'balance',   
+            'manager', 'pay_limit_cash', 'balance',   
         ]
 
 

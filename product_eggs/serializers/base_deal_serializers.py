@@ -16,7 +16,7 @@ class CalculateEggsSerializer(serializers.ModelSerializer):
 
             'application_from_buyer', 'application_from_seller', 'buyer', 'seller', 'owner',
             
-            'cash', 'import_application', 'post_payment_app_for_us',
+            'cash', 'import_application', 
 
             'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
@@ -45,7 +45,7 @@ class CustomCalculateSerializer(serializers.ModelSerializer):
 
             'application_from_buyer', 'application_from_seller', 'buyer', 'seller', 'owner',
             
-            'cash', 'import_application', 'post_payment_app_for_us',
+            'cash', 'import_application', 
 
             'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
@@ -77,7 +77,7 @@ class ConfirmedCalculateEggsSerializer(serializers.ModelSerializer):
             'application_from_buyer', 'application_from_seller', 'buyer', 'seller', 'owner',
             'current_logic', 'additional_expense', 
             
-            'cash', 'import_application', 'post_payment_app_for_us',
+            'cash', 'import_application', 
             'calc_ready', 'logic_confirmed',
 
             'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
@@ -112,7 +112,7 @@ class CustomConfCalcEggsSerializer(serializers.ModelSerializer):
             'application_from_buyer', 'application_from_seller', 'buyer', 'seller', 'owner',
             'current_logic', 'additional_expense', 
             
-            'cash', 'import_application', 'post_payment_app_for_us',
+            'cash', 'import_application', 
             'calc_ready', 'logic_confirmed',
 
             'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
@@ -152,7 +152,7 @@ class BaseDealEggsSerializer(serializers.ModelSerializer):
             'buyer', 'seller', 'owner',
             'current_logic', 'additional_expense', 'documents',
             
-            'cash', 'import_application', 'post_payment_app_for_us',
+            'cash', 'import_application', 
             'calc_ready', 'logic_confirmed', 'deal_status_ready_to_change',
 
             'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
@@ -192,8 +192,8 @@ class CustomBaseDealEggsSerializer(serializers.ModelSerializer):
             'buyer', 'seller', 'owner',
             'current_logic', 'additional_expense', 'documents',
             
-            'cash', 'import_application', 'post_payment_app_for_us',
-            'calc_ready', 'logic_confirmed',  # 'deal_status_ready_to_change',
+            'cash', 'import_application', 
+            'calc_ready', 'logic_confirmed', 
 
             'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
@@ -231,7 +231,7 @@ class CompleteDealEggsModelSerializer(serializers.ModelSerializer):
             'buyer', 'seller', 'owner',
             'current_logic', 'additional_expense', 'documents',
             
-            'cash', 'import_application', 'post_payment_app_for_us',
+            'cash', 'import_application', 
             'calc_ready', 'logic_confirmed', 'deal_status_ready_to_change',
 
             'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
@@ -292,6 +292,3 @@ class DealEggsSerializerSideBar(serializers.ModelSerializer):
     class Meta:
         model = BaseDealEggsModel
         fields = ['id', 'title',]
-
-
-

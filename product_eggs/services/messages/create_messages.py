@@ -47,6 +47,7 @@ class MessagesCreator():
         """
         Create new model MessageToUserEggs.  
         """
+        print(self.user)
         if isinstance(self.user, Iterable):
             for user in self.user:
                 self.new_model = CreatorNewModel(

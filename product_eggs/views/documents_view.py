@@ -9,11 +9,12 @@ from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
 from product_eggs.models.documents import DocumentsDealEggsModel, DocumentsBuyerEggsModel, \
     DocumentsContractEggsModel
 from product_eggs.serializers.documents_serializers import DocumentsDealEggsSerializer, \
-    DocumentsBuyerSerializer, DocumentsContractEggsSerializer
+    DocumentsBuyerSerializer, DocumentsContractEggsSerializer, DocumentsDealGetEggsSerializer
 from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
 from product_eggs.services.validation.check_validated_data import check_val_data_contract_for_contract,\
     check_val_data_contract_for_multy_pay, check_val_data_for_buyer_cash_docs, \
     check_validated_data_for_tmp_json, check_validated_data_for_tmp_json_cash
+from product_eggs.services.raw.documents import deal_docs_get_query
 
 
 class DocumentsViewSet(viewsets.ViewSet):
@@ -24,6 +25,12 @@ class DocumentsViewSet(viewsets.ViewSet):
     """
     queryset = DocumentsDealEggsModel.objects.all()
     serializer_class = DocumentsDealEggsSerializer
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
+    def get_deal_docs(self, request, pk=None) -> Response:  
+        serializer = DocumentsDealGetEggsSerializer(
+            deal_docs_get_query(pk), many=True)  
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def patch_deal_docs(self, request, pk=None) -> Response:

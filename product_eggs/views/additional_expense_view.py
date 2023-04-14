@@ -1,3 +1,5 @@
+from dataclasses import asdict
+from datetime import datetime
 from typing import OrderedDict
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
@@ -17,7 +19,7 @@ class AdditionalExpenseEggsModelViewSet(viewsets.ViewSet):
         serializer = AdditionalExpenseSerializer(self.queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)    
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['patch'])
     def update_expense(self, request, pk=None) -> Response:  
         instance = AdditionalExpenseEggs.objects.get(pk=pk)
         serializer = AdditionalExpenseSerializer(
@@ -30,8 +32,10 @@ class AdditionalExpenseEggsModelViewSet(viewsets.ViewSet):
 
                 serializer.save()
                 instance.expense_detail_json.update(
-                    data_for_save)
-                instance.expense_total += data_for_save.expence
+                    {str(datetime.today()) : asdict(data_for_save)}
+                )
+                instance.expense_total += data_for_save.expense
+                instance.tmp_json = {}
                 instance.save()
                 return Response(
                     serializer.data, status=status.HTTP_200_OK)    

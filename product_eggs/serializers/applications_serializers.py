@@ -22,7 +22,7 @@ class ApplicationSellerEggsDetailSerializer(serializers.ModelSerializer):
             'c0', 'c0_cost', 'c1', 'c1_cost', 'c2', 'c2_cost', 'c3', 'c3_cost', 
             'cB', 'cB_cost', 'dirt', 'dirt_cost', 'current_seller', 'seller_card_detail',   
             'loading_address', 'comment', 'owner_detail', 'title', 'region',  
-            'import_application', 'pre_payment_application', 'postponement_pay',  
+            'import_application', 'postponement_pay',  
         ]
 
 
@@ -55,7 +55,7 @@ class ApplicationSellerEggsSerializer(serializers.ModelSerializer):
         fields = ['id', 'owner', 'delivery_window_from', 'delivery_window_until', 
             'c0', 'c0_cost', 'c1', 'c1_cost', 'c2', 'c2_cost', 'c3', 'c3_cost', 
             'dirt', 'dirt_cost', 'cB', 'cB_cost','region', 'loading_address',  
-            'current_seller', 'import_application', 'pre_payment_application',
+            'current_seller', 'import_application', 
             'postponement_pay', 'comment',
         ]
 
