@@ -11,9 +11,9 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="Pilligrim API",
-      default_version='v1',
-      description="RUSSIA Bnepeg",
+      title="Piligrim API",
+      default_version='v0.01',
+      description="Piligrim EGGS betta",
       terms_of_service="https://www.google.com/policies/terms/",
       contact=openapi.Contact(email="contact@snippets.local"),
       license=openapi.License(name="BSD License"),
