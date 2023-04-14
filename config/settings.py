@@ -100,7 +100,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-CSRF_TRUSTED_ORIGINS = ['localhost'] #test
+CSRF_TRUSTED_ORIGINS = [] 
 
 DATABASES = {
    'default': {
