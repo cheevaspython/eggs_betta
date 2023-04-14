@@ -19,7 +19,6 @@ LOGOUT_REDIRECT_URL = '/'
 MY_APPS = [
     'users',
     'product_eggs',
-    'websocket',
 ]
 
 INSTALLED_APPS = [
