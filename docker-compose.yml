@@ -14,6 +14,9 @@ services:
     depends_on:
       - database
 
+  redis:
+    image: redis:7.0.5-alpine
+    hostname: redis
 
   database: 
     container_name: postgres
@@ -27,7 +30,39 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data/
     # networks:
-    #   - agensgraph
+    #   - test
+
+  worker:
+    build:
+      context: .
+    hostname: worker
+    entrypoint: celery
+    env_file: .env
+    command: -A config.celery.app worker --loglevel=info --concurrency 1 -E 
+    volumes:
+      - .:/pilligrim
+    links:
+      - redis
+    depends_on:
+      - redis
+  #
+  # flower:
+  #   build:
+  #     context: .
+  #   hostname: flower
+  #   entrypoint: celery
+  #   command: -A config.celery.app flower --loglevel=info --concurrency 1 -E
+  #   env_file: .env
+  #   volumes:
+  #     - .:/pilligrim
+  #   links:
+  #     - redis
+  #   depends_on:
+  #     - database
+  #     - redis
+  #   ports:
+  #     - "5555:5555"
+    
 
 volumes:
   postgres:
