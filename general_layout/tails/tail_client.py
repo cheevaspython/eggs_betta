@@ -30,3 +30,11 @@ class TailsContragentModel(models.Model):
         null=True, blank=True,
         default=dict, verbose_name='tail_dict_json_cash', 
     )
+    tmp_json_for_multi_pay_order = models.JSONField(
+        blank=True, null=True, 
+        default=dict, verbose_name='tmp_json_for_multy_pay_order',
+    )
+    tmp_key_form_dict = models.JSONField(
+        blank=True, null=True, 
+        default=dict, verbose_name='dict -> key: form'
+    )

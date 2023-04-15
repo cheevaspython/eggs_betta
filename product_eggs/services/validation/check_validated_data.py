@@ -127,7 +127,7 @@ def check_val_data_for_buyer_cash_docs(
 @try_decorator_param(('KeyError',))
 def check_val_data_contract_for_multy_pay(
         serializer_data: OrderedDict,
-        instance: DocumentsContractEggsModel, 
+        instance: DocumentsContractEggsModel,  
         user: CustomUser) -> None:
 
     if serializer_data['multi_pay_order']:

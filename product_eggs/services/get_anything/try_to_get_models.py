@@ -63,7 +63,7 @@ def try_to_get_deal_model_for_doc_deal_id(doc_deal_id: int) -> BaseDealEggsModel
     """
     Получает модель сделки по pk документов к сделке.
     """
-    return BaseDealEggsModel.objects.get(pk=doc_deal_id) 
+    return BaseDealEggsModel.objects.get(documents=doc_deal_id) 
 
 
 @try_decorator_param(('KeyError',))

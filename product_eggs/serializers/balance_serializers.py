@@ -21,7 +21,7 @@ class StatisticBuyerClientSerializer(serializers.ModelSerializer):
     documents_contract_id = serializers.CharField()
 
     tails_id = serializers.CharField()
-
+    
     pay_limit = serializers.FloatField() 
     pay_limit_cash = serializers.FloatField() 
 

@@ -9,6 +9,7 @@ from product_eggs.routers.additional_expense import additional_expense_router
 from product_eggs.routers.balance import balance_router
 from product_eggs.routers.download_files import download_router
 from product_eggs.routers.requisites import requisites_router
+from product_eggs.routers.tails import tails_router
 
 
 __all__ = (
@@ -24,4 +25,5 @@ __all__ = (
         'balance_router',
         'download_router',
         'requisites_router',
+        'tails_router',
 )

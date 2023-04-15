@@ -58,6 +58,8 @@ class MessageLibrarrySend():
             self.send_logic_book()
         elif self.action in self.action_base_model_deal_book:
             self.send_base_model_deal_book()
+        elif self.action in self.action_general_book:
+            self.send_general_book()
 
     def send_general_book(self):
         """

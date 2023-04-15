@@ -58,3 +58,22 @@ def status_check(instance: BaseDealEggsModel, status: int):
     if instance.status != status:
         raise serializers.ValidationError('Check status base_model')
 
+
+def base_deal_logs_saver(
+        instance: BaseDealEggsModel, serializer_data: OrderedDict) -> None:
+    """
+    Save data in create or change moment, model BaseDealEggsModel.
+    """
+    match instance.status:
+        case 1:
+            instance.log_status_calc_query.update({**serializer_data})
+            instance.save()
+        case 2:
+            instance.log_status_conf_calc_query.update({**serializer_data})
+            instance.save()
+        case 3:
+            instance.log_status_deal_query.update({**serializer_data})
+            instance.save()
+        case _:
+            pass
+     

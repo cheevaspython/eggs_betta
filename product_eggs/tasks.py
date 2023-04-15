@@ -25,3 +25,4 @@ def change_client_balance_deal(client: AbstractClientCard,
     else:
         print('error in task, wrong inn')
 
+

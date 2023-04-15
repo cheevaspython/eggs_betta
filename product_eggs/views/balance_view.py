@@ -67,5 +67,7 @@ class BalanceEggsViewSet(viewsets.ViewSet):
 
         return Response("chek entry data", status=status.HTTP_200_OK)    
 
+    # def get_seller(self, request) -> Response:
+    #     ...
 
 

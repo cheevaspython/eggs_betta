@@ -136,7 +136,7 @@ def parse_multy_payment_json(
             tmp_asdict.pop('other_pays', None)
             tails_treatment(tmp_asdict, pay_order_client)
 
-        current_document_contract.multy_pay_json.update( #TODO
+        current_document_contract.multy_pay_json.update( 
             {str(datetime.today())[:-7]: tmp_asdict})
 
         update_and_save_data_number_json(

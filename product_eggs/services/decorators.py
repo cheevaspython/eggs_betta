@@ -21,7 +21,7 @@ def try_decorator_param(exceptions: tuple, return_value: Any = None):
                 try:
                     return func(*args, **kwargs)
                 except tuple(errors) as e:
-                    print('decorator', e, func.__name__)  #TODO loging
+                    print('decorator', e, func.__name__)                                             #TODO loging
                     if return_value:
                         return return_value
             else:

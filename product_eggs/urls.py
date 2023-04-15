@@ -4,7 +4,7 @@ from product_eggs.routers import application_from_buyer_router, \
     application_from_seller_router, buyer_card_eggs_router, \
     seller_card_eggs_router, logic_card_eggs_router, messages_to_users_router, \
     documents_router, base_deal_router, additional_expense_router, \
-    balance_router, download_router, requisites_router
+    balance_router, download_router, requisites_router, tails_router
 from product_eggs.views.messages_view import RequestUserMessage
 from product_eggs.views.left_sidebar_view import LeftBarEggsViewSet
 from product_eggs.views.is_active_offer_view import FieldIsActiveOffApiview
@@ -23,6 +23,7 @@ urlpatterns = [
     path('base_deal/', include(base_deal_router.urls)),
     
     path('additional_expense/', include(additional_expense_router.urls)),
+    path('tails/', include(tails_router.urls)),
 
     path('downloads/', include(download_router.urls)),
     path('documents/', include(documents_router.urls)),

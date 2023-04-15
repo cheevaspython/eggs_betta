@@ -44,6 +44,7 @@ class DocumentsViewSet(viewsets.ViewSet):
                 instance,
                 eq_requestuser_is_customuser(self.request.user)
             )
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)    
 
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
@@ -62,6 +63,7 @@ class DocumentsViewSet(viewsets.ViewSet):
                 serializer.validated_data,
                 instance,
             )
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)    
 
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
@@ -80,6 +82,7 @@ class DocumentsViewSet(viewsets.ViewSet):
                 serializer.validated_data,
                 instance
             )
+        serializer.save()
             # instance.tmp_json_for_multi_pay_order = {}   #TODO
             # instance.save()
 
