@@ -35,20 +35,17 @@ from product_eggs.services.validation.validation_of_mass_egg import ValidationMa
 
 class BaseDealModelViewSet(viewsets.ViewSet):
     """
+    Base deal status handler.
     """
     queryset = BaseDealEggsModel.objects.all()
     serializer_class = CompleteDealEggsModelSerializer
 
     @action(detail=True, methods=['post'])
     def create_calculate(self, request, pk=None) -> Response:
-        #PEREDAT ID MANAGERS V PK
         check_create_calculate_user_permission(
             request.data,
             eq_requestuser_is_customuser(self.request.user)
         )
-        # if verificate_user_as_superuser(eq_requestuser_is_customuser(self.request.user)):
-        #     pass
-        # else:
         serializer = BaseDealEggsSerializer(data=request.data) 
         serializer.is_valid(raise_exception=True)
 
@@ -80,9 +77,6 @@ class BaseDealModelViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['patch'])
     def patch_calculate(self, request, pk=None) -> Response:
-        # if verificate_user_as_superuser(eq_requestuser_is_customuser(self.request.user)):
-        #     pass
-        # else:
         instance = BaseDealEggsModel.objects.get(pk=pk)
         check_edit_calculate_permission(
             eq_requestuser_is_customuser(self.request.user), instance)
@@ -165,7 +159,6 @@ class BaseDealModelViewSet(viewsets.ViewSet):
         instance = BaseDealEggsModel.objects.get(pk=pk)  
         check_pre_status_for_create(instance, 2)
         create_relation_deal_status_and_deal_docs(instance)
-        #search_done_base_deal_messages_and_turn_off(instance) #TODO
         serializer = BaseDealEggsSerializer(instance, data=request.data, partial=True) 
         serializer.is_valid(raise_exception=True)
 
@@ -208,14 +201,11 @@ class BaseDealModelViewSet(viewsets.ViewSet):
             entry_mass = ValidationMassEggs(serializer.validated_data) 
             entry_mass.start_validate_mass()
             validate_datas_for_positive(serializer.validated_data)   
-            # change = DealStatusChanger(instance,
-            #     eq_requestuser_is_customuser(self.request.user))
         serializer.save()
         change = DealStatusChanger(instance,
             eq_requestuser_is_customuser(self.request.user))
         change.status_changer_main()
 
-        # return Response(serializer.data, status=status.HTTP_200_OK)    
         serializer = CustomBaseDealEggsSerializer(
             status_deal_list_query_is_active(pk), many=True) 
         if init_logic_user(request.user):
