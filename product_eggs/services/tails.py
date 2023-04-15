@@ -61,11 +61,15 @@ def subtract_tail_amount_and_actives(
         if key['form_one']:
             instance.active_tails_form_one -= 1
             if isinstance(instance.tail_dict_json, dict):
+                instance.current_tail_form_one -= \
+                    instance.tail_dict_json[key['form_one']]['total_amount']
                 instance.tail_dict_json.pop(key['form_one'], None)
                 instance.save()
         elif key['form_two']:
             instance.active_tails_form_two -= 1
             if isinstance(instance.tail_dict_json_cash, dict):
+                instance.current_tail_form_two -= \
+                    instance.tail_dict_json[key['form_two']]['total_amount']
                 instance.tail_dict_json_cash.pop(key['form_two'], None)
                 instance.save()
         else:
