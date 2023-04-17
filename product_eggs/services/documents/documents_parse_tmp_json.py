@@ -8,7 +8,7 @@ from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel, \
     DocumentsDealEggsModel
 from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
-from product_eggs.services.base_deal.deal_services import status_check
+# from product_eggs.services.base_deal.deal_services import status_check
 from product_eggs.services.decorators import try_decorator_param
 from product_eggs.services.get_anything.try_to_get_models import get_client_for_inn, \
     try_to_get_deal_model_for_doc_deal_id
@@ -16,7 +16,7 @@ from product_eggs.services.data_class import OtherPayTmpData, PayOrderDataForSav
     PayOrderDataForSaveMulti
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from product_eggs.services.statistic import ContragentBalanceForm
-from product_eggs.services.documents.documents_get import update_and_save_data_number_json
+from product_eggs.services.documents.documents_get import try_to_get_documents_model, update_and_save_data_number_json
 from users.models import CustomUser
 
 
@@ -159,10 +159,11 @@ class MultiDocumentsPaymentParser():
         if self.pay_order_multi.other_pays:
             for cur_deal_pay in self.pay_order_multi.other_pays:
                 construct = self.construct_other_pay(cur_deal_pay)
+                deal_docs = DocumentsDealEggsModel.objects.get(pk=cur_deal_pay.documents_id)
                 cur_other_pay = DealDocumentsPaymentParser(
                     construct,
                     self.user,
-                    cur_deal_pay.documents_id
+                    deal_docs,
                 )
                 cur_other_pay.check_entry_data()
                 cur_other_pay.convert_pay_data()
@@ -171,14 +172,14 @@ class MultiDocumentsPaymentParser():
                     OtherPayTmpData(
                         cur_other_pay,
                         construct,
-                        cur_deal_pay.documents_id
+                        deal_docs
                         )
                 )
                 self.save_and_update_cur_model()
-        else:
-            self.multi_pay_dict = asdict(self.pay_order_multi)
-            self.get_documents_contract()
-            self.send_message_to_finance_manager()
+        
+        self.multi_pay_dict = asdict(self.pay_order_multi)
+        self.get_documents_contract()
+        self.send_message_to_finance_manager()
 
     def tail_save(self):
         from product_eggs.services.tails import tails_treatment

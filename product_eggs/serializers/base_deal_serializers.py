@@ -303,6 +303,7 @@ class BaseDealBalanceSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'current_deal_buyer_debt', 'documents', 'cash',
             'deal_buyer_debt_UPD', 'payback_day_for_us', 'payback_day_for_buyer', 
+            'current_deal_our_debt', 'deal_our_debt_UPD'
         ]
 
 
@@ -336,4 +337,4 @@ class DealEggsSerializerSideBar(serializers.ModelSerializer):
 
     class Meta:
         model = BaseDealEggsModel
-        fields = ['id', 'title',]
+        fields = ['id', 'title', 'documents']

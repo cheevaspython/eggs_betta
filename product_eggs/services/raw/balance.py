@@ -43,7 +43,7 @@ def get_queryset_seller_balance() -> RawQuerySet:
     return queryset
 
 
-def get_queryset_deals_debt_by_client(current_client_inn: str, seller: bool) -> list[dict]:
+def get_queryset_deals_debt_by_client(current_client_inn: str, seller: bool = False) -> list[dict]:
     '''
     get queryset deals debt, bool true if seller - else buyer
     '''
@@ -51,12 +51,12 @@ def get_queryset_deals_debt_by_client(current_client_inn: str, seller: bool) -> 
 
     client_model = ('seller', 'our', 'us', ) if seller else ('buyer', 'buyer', 'buyer',)
     queryset = BaseDealEggsModel.objects.raw(
-        f'''SELECT d.id, d.current_deal_{client_model[1]}_debt, d.payback_day_for_us,
-                d.payback_day_for_buyer, d.documents_id, d."deal_{client_model[1]}_debt_UPD",
+        f'''SELECT d.id, d.payback_day_for_buyer, d.payback_day_for_us,
+                d.documents_id, d."deal_our_debt_UPD", d."deal_buyer_debt_UPD",
                 d.cash, d.current_deal_our_debt, d.current_deal_buyer_debt
             FROM "BaseDealModelEggs" AS d
             WHERE d.{client_model[0]}_id = '{current_client_inn}' 
-            AND d.current_deal_{client_model[1]}_debt > 0 AND d.status = 3;'''
+            AND d.current_deal_{client_model[1]}_debt > 0;'''
     )
     data_query = BaseDealBalanceSerializer(queryset, many=True)
     return add_marker_to_deal_return_data(data_query.data, client_model)

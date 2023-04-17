@@ -61,8 +61,12 @@ class BuyerCardEggs(AbstractClientCard, AbstractWarehouseCard):
         verbose_name='Документы (Договора)', null=True
     )
     def save(self, *args, **kwargs):
-        self.balance = (self.balance_form_one + 
-            self.balance_form_two + calc_client_tail_debt(self.tails))
+        if self.tails:
+            self.balance = (self.balance_form_one + 
+                self.balance_form_two + calc_client_tail_debt(self.tails))
+        else:
+            self.balance = (self.balance_form_one + 
+                self.balance_form_two)
 
         return super(BuyerCardEggs, self).save(*args, **kwargs)
 
@@ -109,8 +113,12 @@ class SellerCardEggs(AbstractClientCard, AbstractAddressCard):
     )
 
     def save(self, *args, **kwargs):
-        self.balance = (self.balance_form_one + 
-            self.balance_form_two + calc_client_tail_debt(self.tails))
+        if self.tails:
+            self.balance = (self.balance_form_one + 
+                self.balance_form_two + calc_client_tail_debt(self.tails))
+        else:
+            self.balance = (self.balance_form_one + 
+                self.balance_form_two)
 
         return super().save(*args, **kwargs)
 

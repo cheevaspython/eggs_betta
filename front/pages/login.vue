@@ -9,6 +9,7 @@
         <b-input v-model="password" placeholder="Введите пароль" type="password" maxlength="30"
                  @keyup.native.enter="onSubmit"></b-input>
       </b-field>
+      <div class="errorMessage" v-show="errorMessage">{{ errorMessage }}</div>
       <b-button type="is-info" @click="onSubmit" :loading="loading">Войти</b-button>
     </form>
   </section>
@@ -22,36 +23,19 @@ export default {
     return {
       login: '',
       password: '',
+      errorMessage: '',
       loading: false,
     }
   },
   methods: {
     async onSubmit() {
-      // try {
-      //   let response = await this.$auth.loginWith('local', {data: {username: this.login, password: this.password}})
-      //   console.log(response)
-      // } catch (err) {
-      //   console.log(err)
-      // }
       this.loading = true
-      this.$store.dispatch("authorization/postAuth", {username: this.login, password: this.password})
-        .then(res => {
-          if (res.detail) {
-            this.$buefy.toast.open({
-              message: res.detail,
-              type: 'is-danger'
-            })
-          }
-        })
-      .catch(e=> {
-        this.$buefy.toast.open({
-          message: e,
-          type: 'is-danger'
-        })
-      })
-      .finally(()=>{
+      this.errorMessage = await this.$store.dispatch("authorization/postAuth", {username: this.login, password: this.password})
+      if (this.errorMessage) {
         this.loading = false
-      })
+        this.login = ''
+        this.password = ''
+      }
     }
   }
 }
@@ -61,5 +45,10 @@ export default {
 .login__form {
   min-width: 400px;
   margin-top: 15%;
+}
+
+.errorMessage {
+  color: red;
+  margin-bottom: 10px;
 }
 </style>

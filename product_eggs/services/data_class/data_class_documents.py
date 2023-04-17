@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from rest_framework import serializers
+from product_eggs.models.documents import DocumentsDealEggsModel
 
 from users.models import CustomUser
         
@@ -15,7 +16,7 @@ class OtherPayTmpData():
     """
     current_pay: Any 
     construct: dict
-    current_deal_doc: int
+    current_deal_doc: DocumentsDealEggsModel
     
     def __post_init__(self):
         from product_eggs.services.documents.documents_parse_tmp_json \

@@ -30,16 +30,10 @@ class TailsEggsViewSet(viewsets.ViewSet):
         if isinstance(serializer.validated_data, OrderedDict):
             if check_validated_tails_data_for_fields(serializer.validated_data):
                 wrong_entry_tail_data(serializer.validated_data)
-
                 transaction_tails_data(
                     serializer.validated_data['tmp_json_for_multi_pay_order'],
-                    instance,
                     eq_requestuser_is_customuser(self.request.user),
-                    serializer.validated_data['tmp_key_form_dict'],
                 )
-                serializer.validated_data['tmp_json_for_multi_pay_order'] = {}
-                serializer.validated_data['tmp_key_form_dict'] = {}
-        serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)    
 

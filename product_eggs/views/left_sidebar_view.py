@@ -32,7 +32,7 @@ class LeftBarEggsViewSet(views.APIView):
         deal_user_is_active = DealEggsSerializerSideBar(
             BaseDealEggsModel.objects.filter(
                 is_active=True, owner=self.request.user, status=3,
-            ).only('id', 'current_deal_our_debt', 'current_deal_buyer_debt'), many=True) 
+            ).only('id', 'documents', 'current_deal_our_debt', 'current_deal_buyer_debt'), many=True) 
 
         return Response({
             'current_user_application_from_buyer_eggs': serializer_current_user_app_buyer_eggs.data, 

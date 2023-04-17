@@ -85,7 +85,7 @@ class SellerCardEggsAdmin(admin.ModelAdmin):
                        'manager', 'comment','region', )
         }),
         ('Платежная информация', {
-            'fields': (( 'balance',), ('tails'),
+            'fields': (( 'balance', 'balance_form_one', 'balance_form_two'), ('tails'),
                        'requisites', 'documents_contract',)
         }),
         ('Адреса производств', {

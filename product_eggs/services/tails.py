@@ -41,16 +41,18 @@ def tails_treatment(
         multy_pay_dict.pop('tail_form_two', None)
         client.tails.tail_dict_json.update( 
             {str(uuid.uuid4()): multy_pay_dict})
+        client.tails.tmp_json_for_multi_pay_order = {}
+        client.tails.tmp_key_form_dict = {}
         client.tails.save()
     else:
-        print(client.tails.tail_dict_json_cash)
         client.tails.current_tail_form_two += multy_pay_dict['tail_form_two'] 
         client.tails.active_tails_form_two += 1
         multy_pay_dict.pop('tail_form_one', None)
         client.tails.tail_dict_json_cash.update( 
             {str(uuid.uuid4()): multy_pay_dict})
+        client.tails.tmp_json_for_multi_pay_order = {}
+        client.tails.tmp_key_form_dict = {}
         client.tails.save()
-        print(client.tails.tail_dict_json_cash)
 
 
 def subtract_tail_amount_and_actives(
@@ -62,18 +64,16 @@ def subtract_tail_amount_and_actives(
     try:
         if key['form_one']:
             instance.active_tails_form_one -= 1
-            if isinstance(instance.tail_dict_json, dict):
-                instance.current_tail_form_one -= \
-                    instance.tail_dict_json[key['form_one']]['total_amount']
-                instance.tail_dict_json.pop(key['form_one'], None)
-                instance.save()
+            instance.current_tail_form_one -= \
+                instance.tail_dict_json[key['form_one']]['total_amount']
+            instance.tail_dict_json.pop(key['form_one'], None)
+            instance.save()
         elif key['form_two']:
             instance.active_tails_form_two -= 1
-            if isinstance(instance.tail_dict_json_cash, dict):
-                instance.current_tail_form_two -= \
-                    instance.tail_dict_json[key['form_two']]['total_amount']
-                instance.tail_dict_json_cash.pop(key['form_two'], None)
-                instance.save()
+            instance.current_tail_form_two -= \
+                instance.tail_dict_json[key['form_two']]['total_amount']
+            instance.tail_dict_json_cash.pop(key['form_two'], None)
+            instance.save()
         else:
             raise serializers.ValidationError(
                 'wrong form-key in tmo_key_dict_json.')
@@ -85,20 +85,16 @@ def subtract_tail_amount_and_actives(
 @transaction.atomic
 def transaction_tails_data(
         parse_val_data: dict,
-        instance: TailsContragentModelEggs,
-        user: CustomUser,
-        key_dict: dict) -> None:
+        user: CustomUser,) -> None:
     """
     Tail data transtaction.
     """
-
     parse_tail = MultiDocumentsPaymentParser(
         parse_val_data,
         user,
         current_document_contract=None,
     )
     parse_tail.main()
-    subtract_tail_amount_and_actives(instance, key_dict)
 
 
 def wrong_entry_tail_data(validated_data: OrderedDict) -> None:
