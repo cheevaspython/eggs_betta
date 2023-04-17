@@ -6,8 +6,9 @@ from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsBuyerEggsModel, \
     DocumentsContractEggsModel, DocumentsDealEggsModel
 from product_eggs.services.decorators import try_decorator_param
-from product_eggs.services.documents.documents import cash_documents_check_save, \
-    parse_multy_payment_json, try_to_write_date_nums_jsonfield
+from product_eggs.services.documents.documents import cash_documents_check_save
+from product_eggs.services.documents.documents_parse_tmp_json import DealDocumentsPaymentParser, \
+        MultiDocumentsPaymentParser
 from product_eggs.services.documents.documents_static import DOC_BUYER_CASH, \
     DOC_CONTRACT_CONTRACT, DOC_CONTRACT_MULTY_PAY
 from product_eggs.services.get_anything.get_patch_data_before_save import get_object_from_patch_data
@@ -85,11 +86,12 @@ def check_validated_data_for_tmp_json(
         user: CustomUser) -> None:
 
     if serializer_data['tmp_json']:
-        try_to_write_date_nums_jsonfield(
+        parser = DealDocumentsPaymentParser(
             serializer_data['tmp_json'],
             user,
             instance,
         )
+        parser.main_default()
         instance.tmp_json = {}
         instance.save()
 
@@ -103,11 +105,12 @@ def check_validated_data_for_tmp_json_cash(
     if serializer_data['tmp_json']:
         cash_documents_check_save(serializer_data['tmp_json'],  
             user, instance)
-        parse_multy_payment_json(
+        parse_cash = MultiDocumentsPaymentParser(
             serializer_data['tmp_json'],
             user,
             None,
         )
+        parse_cash.main()
         instance.tmp_json = {}
         instance.save()
 
@@ -135,11 +138,12 @@ def check_val_data_contract_for_multy_pay(
             {str(datetime.today())[:-7] : (DOC_CONTRACT_MULTY_PAY +
                 str(serializer_data['multi_pay_order']))}
         )
-        parse_multy_payment_json(
+        parse_multi = MultiDocumentsPaymentParser(
             serializer_data['tmp_json_for_multi_pay_order'],
             user,
             instance,
         )
+        parse_multi.main()
         instance.save()
 
 

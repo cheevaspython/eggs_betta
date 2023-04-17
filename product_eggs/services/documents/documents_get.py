@@ -3,8 +3,8 @@ from typing import Union
 
 from rest_framework import serializers
 
-from product_eggs.models.documents import DocumentsBuyerEggsModel, DocumentsContractEggsModel, \
-    DocumentsDealEggsModel
+from product_eggs.models.documents import DocumentsBuyerEggsModel, \
+    DocumentsContractEggsModel, DocumentsDealEggsModel
 from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
 
 

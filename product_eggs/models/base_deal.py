@@ -257,7 +257,7 @@ class BaseDealEggsModel(models.Model):
             delta = self.__current_deal_our_debt - self.current_deal_our_debt 
             change_client_balance_deal(self.seller, delta, self.cash) 
 
-        if self.current_deal_buyer_debt != self.__current_deal_buyer_debt:
+        elif self.current_deal_buyer_debt != self.__current_deal_buyer_debt:
             delta = self.__current_deal_buyer_debt - self.current_deal_buyer_debt 
             change_client_balance_deal(self.buyer, delta, self.cash) 
 

@@ -5,9 +5,9 @@ from rest_framework import serializers
 
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
-from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from product_eggs.services.statistic import BaseBalanceAbstract
 from product_eggs.services.data_class import PayOrderDataForSave
+from product_eggs.services.messages.messages_library import MessageLibrarrySend
 
 
 class DealPayOrderUPDservice():
@@ -71,6 +71,7 @@ class DealPayOrderUPDservice():
         """
         Обрабатывает вводимые данные.
         """
+
         match self.data.doc_type:
             case 'UPD_incoming':
                 if self.deal.current_deal_our_debt:

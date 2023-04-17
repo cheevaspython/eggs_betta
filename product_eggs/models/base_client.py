@@ -60,12 +60,11 @@ class BuyerCardEggs(AbstractClientCard, AbstractWarehouseCard):
         on_delete=models.PROTECT, 
         verbose_name='Документы (Договора)', null=True
     )
-
     def save(self, *args, **kwargs):
         self.balance = (self.balance_form_one + 
             self.balance_form_two + calc_client_tail_debt(self.tails))
 
-        return super().save(*args, **kwargs)
+        return super(BuyerCardEggs, self).save(*args, **kwargs)
 
     def __str__(self):
         return f'Покупатель {self.name}'

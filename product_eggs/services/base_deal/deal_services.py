@@ -51,12 +51,17 @@ def get_additional_exp_detail(instance: BaseDealEggsModel) -> OrderedDict: #TODO
     return return_data.data
 
 
-def status_check(instance: BaseDealEggsModel, status: int):
+def status_check(instance: BaseDealEggsModel, status: int | tuple[int, int]) -> None:
     """
     Check status calc, conf_calc, deal, complete_deal.
     """
-    if instance.status != status:
-        raise serializers.ValidationError('Check status base_model')
+    if isinstance(status, int):
+        if instance.status != status:
+            raise serializers.ValidationError('Check status base_model')
+    # else:
+    #     for cur_status in status:
+    #         if instance.status != cur_status:
+    #             raise serializers.ValidationError('Check status base_model')
 
 
 def base_deal_logs_saver(

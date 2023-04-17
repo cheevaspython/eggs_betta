@@ -1,11 +1,13 @@
 from typing import OrderedDict
 import uuid
-from django.db import transaction
 
+from django.db import transaction
 from rest_framework import serializers
 
 from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
 from product_eggs.models.tails import TailsContragentModelEggs
+from product_eggs.services.decorators import try_decorator_param
+from product_eggs.services.documents.documents_parse_tmp_json import MultiDocumentsPaymentParser
 from users.models import CustomUser
 
 
@@ -40,15 +42,15 @@ def tails_treatment(
         client.tails.tail_dict_json.update( 
             {str(uuid.uuid4()): multy_pay_dict})
         client.tails.save()
-        client.save()
     else:
+        print(client.tails.tail_dict_json_cash)
         client.tails.current_tail_form_two += multy_pay_dict['tail_form_two'] 
         client.tails.active_tails_form_two += 1
         multy_pay_dict.pop('tail_form_one', None)
         client.tails.tail_dict_json_cash.update( 
             {str(uuid.uuid4()): multy_pay_dict})
         client.tails.save()
-        client.save()
+        print(client.tails.tail_dict_json_cash)
 
 
 def subtract_tail_amount_and_actives(
@@ -89,13 +91,13 @@ def transaction_tails_data(
     """
     Tail data transtaction.
     """
-    from product_eggs.services.documents.documents import parse_multy_payment_json
 
-    parse_multy_payment_json(
+    parse_tail = MultiDocumentsPaymentParser(
         parse_val_data,
         user,
         current_document_contract=None,
     )
+    parse_tail.main()
     subtract_tail_amount_and_actives(instance, key_dict)
 
 
@@ -114,3 +116,11 @@ def wrong_entry_tail_data(validated_data: OrderedDict) -> None:
             raise serializers.ValidationError(
                 'Wrong entry data for pay_tails, only tmp_json')
 
+
+@try_decorator_param(('KeyError',))
+def check_validated_tails_data_for_fields(validated_data: OrderedDict) -> bool:
+    if validated_data['tmp_json_for_multi_pay_order'] and \
+            validated_data['tmp_key_form_dict']:
+        return True
+    else: 
+        return False

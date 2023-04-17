@@ -21,8 +21,8 @@ from product_eggs.services.base_deal.conf_calc_service import check_calc_ready_f
     check_field_expence_create_new_model, check_fields_values_to_calc_ready, \
     check_validated_data_for_logic_conf
 from product_eggs.services.base_deal.deal_status_change import DealStatusChanger
-from product_eggs.services.base_deal.deal_services import base_deal_logs_saver, check_pre_status_for_create, \
-    create_relation_deal_status_and_deal_docs, status_check
+from product_eggs.services.base_deal.deal_services import base_deal_logs_saver, \
+    check_pre_status_for_create, create_relation_deal_status_and_deal_docs, status_check
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from product_eggs.services.raw.raw_query_base_deal import status_calc_list_query_is_active, \
     status_comp_deal_list_query_is_active, status_conf_calc_list_query_is_active, \
@@ -105,7 +105,7 @@ class BaseDealModelViewSet(viewsets.ViewSet):
 
         #return list data for display
         serializer = CustomCalculateSerializer(
-            status_calc_list_query_is_active(), many=True) 
+            status_calc_list_query_is_active(pk), many=True) 
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    
@@ -171,7 +171,7 @@ class BaseDealModelViewSet(viewsets.ViewSet):
 
         #return list data for display
         serializer = CustomConfCalcEggsSerializer(
-            status_conf_calc_list_query_is_active(), many=True)  
+            status_conf_calc_list_query_is_active(pk), many=True) 
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    
