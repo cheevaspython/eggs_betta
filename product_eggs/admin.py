@@ -9,7 +9,7 @@ from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.messages import MessageToUserEggs
 from product_eggs.models.requisites import RequisitesEggs
 from product_eggs.models.documents import DocumentsDealEggsModel, \
-    DocumentsContractEggsModel, DocumentsBuyerEggsModel
+    DocumentsContractEggsModel
 from product_eggs.models.origins import OriginsDealEggs
 from product_eggs.models.tails import TailsContragentModelEggs
 
@@ -62,7 +62,7 @@ class BuyerCardEggsAdmin(admin.ModelAdmin):
         ('Платежная информация', {
             'fields': (( 'balance',), ('pay_limit', 'balance_form_one'),
                        ('pay_limit_cash', 'balance_form_two'), ('tails'),
-                       'requisites', 'documents_contract', 'docs_cash', )
+                       'requisites', 'documents_contract')
         }),
         ('Адреса складов', {
             'fields' : ('warehouse_address_1', 
@@ -109,8 +109,8 @@ class LogicCardEggsAdmin(admin.ModelAdmin):
                        'comment',)
         }),
         ('Платежная информация', {
-            'fields': (('pay_type'),
-                       'requisites',)
+            'fields': (( 'balance', 'balance_form_one', 'balance_form_two'),
+                       'requisites', 'documents_contract')
         }),
     )
 
@@ -120,6 +120,6 @@ admin.site.register(
             BaseDealEggsModel,
             AdditionalExpenseEggs, DocumentsDealEggsModel, 
             OriginsDealEggs, DocumentsContractEggsModel,
-            DocumentsBuyerEggsModel, TailsContragentModelEggs,
+            TailsContragentModelEggs,
         ]
 )

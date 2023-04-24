@@ -14,11 +14,13 @@ class CalculateEggsSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'status', 'comment', 'note_calc', 
 
-            'application_from_buyer', 'application_from_seller', 'buyer', 'seller', 'owner',
+            'application_from_buyer', 'application_from_seller',
+            'buyer', 'seller', 'owner',
             
             'cash', 'import_application', 
 
-            'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
+            'delivery_cost', 'delivery_by_seller',
+            'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address',
 
@@ -43,11 +45,13 @@ class CustomCalculateSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'status', 'comment', 'note_calc', 
 
-            'application_from_buyer', 'application_from_seller', 'buyer', 'seller', 'owner',
+            'application_from_buyer', 'application_from_seller',
+            'buyer', 'seller', 'owner',
             
             'cash', 'import_application', 
 
-            'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
+            'delivery_cost', 'delivery_by_seller',
+            'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address',
 
@@ -74,16 +78,19 @@ class ConfirmedCalculateEggsSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'status', 'comment', 'note_calc', 'note_conf_calc',
 
-            'application_from_buyer', 'application_from_seller', 'buyer', 'seller', 'owner',
-            'current_logic', 'additional_expense', 
+            'application_from_buyer', 'application_from_seller',
+            'buyer', 'seller', 'owner',
+            'current_logic', 'additional_expense', 'documents',
             
             'cash', 'import_application', 
             'calc_ready', 'logic_confirmed',
 
-            'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
+            'delivery_cost', 'delivery_by_seller',
+            'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address',
 
+            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
@@ -109,16 +116,19 @@ class CustomConfCalcEggsSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'status', 'comment', 'note_calc', 'note_conf_calc',
 
-            'application_from_buyer', 'application_from_seller', 'buyer', 'seller', 'owner',
-            'current_logic', 'additional_expense', 
+            'application_from_buyer', 'application_from_seller',
+            'buyer', 'seller', 'owner',
+            'current_logic', 'additional_expense', 'documents',
             
             'cash', 'import_application', 
             'calc_ready', 'logic_confirmed',
 
-            'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
+            'delivery_cost', 'delivery_by_seller',
+            'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address',
 
+            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
@@ -155,14 +165,17 @@ class BaseDealEggsSerializer(serializers.ModelSerializer):
             'cash', 'import_application', 
             'calc_ready', 'logic_confirmed', 'deal_status_ready_to_change',
 
-            'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
+            'delivery_cost', 'delivery_by_seller',
+            'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address', 
             'actual_loading_date', 'actual_unloading_date',
 
+            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
             'payback_day_for_us', 'payback_day_for_buyer', 'current_deal_our_debt', 
             'current_deal_buyer_debt', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
+
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
             'seller_cB_cost', 'seller_c0_cost', 'seller_c1_cost',
@@ -195,11 +208,13 @@ class CustomBaseDealEggsSerializer(serializers.ModelSerializer):
             'cash', 'import_application', 
             'calc_ready', 'logic_confirmed', 
 
-            'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
+            'delivery_cost', 'delivery_by_seller',
+            'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address', 
             'actual_loading_date', 'actual_unloading_date',
 
+            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
             'payback_day_for_us', 'payback_day_for_buyer',  
             'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
@@ -234,11 +249,13 @@ class CompleteDealEggsModelSerializer(serializers.ModelSerializer):
             'cash', 'import_application', 
             'calc_ready', 'logic_confirmed', 'deal_status_ready_to_change',
 
-            'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
+            'delivery_cost', 'delivery_by_seller',
+            'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address', 
             'actual_loading_date', 'actual_unloading_date',
 
+            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
             'payback_day_for_us', 'payback_day_for_buyer', 'current_deal_our_debt', 
             'current_deal_buyer_debt', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
@@ -276,11 +293,13 @@ class CustomBaseCompDealEggsSerializer(serializers.ModelSerializer):
             'cash', 'import_application', 
             'calc_ready', 'logic_confirmed', 'deal_status_ready_to_change',
 
-            'delivery_cost', 'delivery_type_of_payment', 'delivery_by_seller',
+            'delivery_cost', 'delivery_by_seller',
+            'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address', 
             'actual_loading_date', 'actual_unloading_date',
 
+            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
             'payback_day_for_us', 'payback_day_for_buyer', 'current_deal_our_debt', 
             'current_deal_buyer_debt', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
@@ -303,7 +322,8 @@ class BaseDealBalanceSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'current_deal_buyer_debt', 'documents', 'cash',
             'deal_buyer_debt_UPD', 'payback_day_for_us', 'payback_day_for_buyer', 
-            'current_deal_our_debt', 'deal_our_debt_UPD'
+            'current_deal_our_debt', 'deal_our_debt_UPD', 'logic_our_debt_current',
+            'logic_our_debt_for_app_contract',
         ]
 
 
@@ -331,10 +351,11 @@ class ConfirmedCalculateEggsSerializerSideBar(serializers.ModelSerializer):
 
 class DealEggsSerializerSideBar(serializers.ModelSerializer):
     title = serializers.SerializerMethodField()
+    model_id = serializers.IntegerField()
 
     def get_title(self, instance):
         return ('Сделка')
 
     class Meta:
         model = BaseDealEggsModel
-        fields = ['id', 'title', 'documents']
+        fields = ['id', 'title',] + ['model_id']

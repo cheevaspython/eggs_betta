@@ -3,8 +3,7 @@ from django.db import models
 from general_layout.bases.models import AbstractClientCard, \
     AbstractAddressCard, LogicCard, AbstractWarehouseCard
 from product_eggs.models.requisites import RequisitesEggs
-from product_eggs.models.documents import DocumentsContractEggsModel, \
-    DocumentsBuyerEggsModel
+from product_eggs.models.documents import DocumentsContractEggsModel
 from product_eggs.models.tails import TailsContragentModelEggs
 from product_eggs.services.tails_calc import calc_client_tail_debt
 from users.models import CustomUser
@@ -18,13 +17,10 @@ class BuyerCardEggs(AbstractClientCard, AbstractWarehouseCard):
         verbose_name_plural = 'Покупатели'
         ordering = ['pk']
         
-    docs_cash = models.OneToOneField(
-        DocumentsBuyerEggsModel, on_delete=models.PROTECT, 
-        verbose_name='Покупатель доки наличка', null=True,
-    )
     tails = models.OneToOneField(
         TailsContragentModelEggs, on_delete=models.PROTECT, 
-        verbose_name='Депозит', null=True,
+        null=True, blank=True, 
+        verbose_name='Депозит',
     )
     requisites = models.OneToOneField(
         RequisitesEggs, on_delete=models.PROTECT, 
@@ -92,7 +88,8 @@ class SellerCardEggs(AbstractClientCard, AbstractAddressCard):
     )
     tails = models.OneToOneField(
         TailsContragentModelEggs, on_delete=models.PROTECT, 
-        verbose_name='Депозит', null=True,
+        null=True, blank=True, 
+        verbose_name='Депозит', 
     )
     manager = models.ForeignKey(
         CustomUser, related_name='seller_manager',
@@ -129,7 +126,7 @@ class SellerCardEggs(AbstractClientCard, AbstractAddressCard):
 class LogicCardEggs(LogicCard):
 
     class Meta:
-        db_table = 'LogicEggs'
+        db_table = 'LogicCardEggs'
         verbose_name = 'Логист'
         verbose_name_plural = 'Логист'
         ordering = ['pk']
@@ -138,9 +135,27 @@ class LogicCardEggs(LogicCard):
         RequisitesEggs, on_delete=models.PROTECT, 
         verbose_name='Реквизиты', null=True, blank=True,
     )
+    balance = models.FloatField(
+        default=0, null=True,
+        verbose_name='Баланс',
+    )
+    balance_form_one = models.FloatField(
+        null=True, blank=True, default=0,
+        verbose_name='Баланс по форме 1', 
+    )
+    balance_form_two = models.FloatField(
+        null=True, blank=True, default=0,
+        verbose_name='Баланс по форме 2', 
+    )
     documents_contract = models.OneToOneField(
         DocumentsContractEggsModel, on_delete=models.PROTECT, 
         verbose_name='Документы (Договора)', null=True,
     )
+    def save(self, *args, **kwargs):
+        self.balance = (self.balance_form_one + 
+            self.balance_form_two)
+
+        return super().save(*args, **kwargs)
+
     def __str__(self):
         return f'Логист {self.name}'

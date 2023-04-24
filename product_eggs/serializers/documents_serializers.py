@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from product_eggs.models.documents import DocumentsDealEggsModel, DocumentsContractEggsModel, \
-    DocumentsBuyerEggsModel
+from product_eggs.models.documents import DocumentsDealEggsModel, DocumentsContractEggsModel
 
 
 class DocumentsDealEggsSerializer(serializers.ModelSerializer):
@@ -18,13 +17,6 @@ class DocumentsContractEggsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class DocumentsBuyerSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = DocumentsBuyerEggsModel
-        fields = '__all__'
-
-
 class DocumentsDealGetEggsSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -36,5 +28,5 @@ class DocumentsDealGetEggsSerializer(serializers.ModelSerializer):
             'product_invoice_from_seller', 'UPD_outgoing', 'account_invoicing_from_buyer', 
             'product_invoice_from_buyer', 'veterinary_certificate_buyer', 'veterinary_certificate_seller',
             'international_deal_CMR', 'international_deal_TTN', 'UPD_logic', 'account_invoicing_logic', 
-            'product_invoice_logic',
+            'product_invoice_logic', 'payment_order_outcoming_logic', 
         ]

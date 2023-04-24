@@ -9,8 +9,12 @@ class DocumentsDealModel(models.Model):
         abstract = True
 
     data_number_json = models.JSONField(
-        blank=True, null=True,
-        default=dict, verbose_name='Даты и номера',
+        blank=True, null=True, 
+        default=dict, verbose_name='Даты и номера форма 1',
+    )
+    data_number_json_cash = models.JSONField(
+        blank=True, null=True, 
+        default=dict, verbose_name='Даты и номера форма 2',
     )
     tmp_json = models.JSONField(
         blank=True, null=True,
@@ -34,6 +38,12 @@ class DocumentsDealModel(models.Model):
         upload_to=(f'uploads/deal_docs/payment_order_outcoming/{datetime.today().year}/{datetime.today().month}/' +
             f'{datetime.today().day}/{datetime.today().hour}-{datetime.today().minute}-{datetime.today().second}/'), 
         verbose_name='Исходящее платежное поручение',
+    )
+    payment_order_outcoming_logic = models.FileField(
+        blank=True, null=True, 
+        upload_to=(f'uploads/deal_docs/payment_order_outcoming_logic/{datetime.today().year}/{datetime.today().month}/' +
+            f'{datetime.today().day}/{datetime.today().hour}-{datetime.today().minute}-{datetime.today().second}/'), 
+        verbose_name='Исходящее платежное поручение логистика',
     )
     specification_seller = models.FileField(
         blank=True, null=True, 

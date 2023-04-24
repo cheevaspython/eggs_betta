@@ -3,14 +3,12 @@ from typing import OrderedDict, Union
 
 from django.db.models import QuerySet
 from product_eggs.models.base_deal import BaseDealEggsModel
-from product_eggs.models.documents import DocumentsBuyerEggsModel, \
-    DocumentsContractEggsModel, DocumentsDealEggsModel
+from product_eggs.models.documents import DocumentsContractEggsModel, DocumentsDealEggsModel
 from product_eggs.services.decorators import try_decorator_param
-from product_eggs.services.documents.documents import cash_documents_check_save
 from product_eggs.services.documents.documents_parse_tmp_json import DealDocumentsPaymentParser, \
-        MultiDocumentsPaymentParser
-from product_eggs.services.documents.documents_static import DOC_BUYER_CASH, \
-    DOC_CONTRACT_CONTRACT, DOC_CONTRACT_MULTY_PAY
+    MultiDocumentsPaymentParser
+from product_eggs.services.documents.documents_static import DOC_CONTRACT_CASH, DOC_CONTRACT_CONTRACT, \
+    DOC_CONTRACT_MULTY_PAY
 from product_eggs.services.get_anything.get_patch_data_before_save import get_object_from_patch_data
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from users.models import CustomUser
@@ -97,37 +95,6 @@ def check_validated_data_for_tmp_json(
 
 
 @try_decorator_param(('KeyError',))
-def check_validated_data_for_tmp_json_cash(
-        serializer_data: OrderedDict,
-        instance: DocumentsBuyerEggsModel, 
-        user: CustomUser) -> None:
-
-    if serializer_data['tmp_json']:
-        cash_documents_check_save(serializer_data['tmp_json'],  
-            user, instance)
-        parse_cash = MultiDocumentsPaymentParser(
-            serializer_data['tmp_json'],
-            user,
-            None,
-        )
-        parse_cash.main()
-        instance.tmp_json = {}
-        instance.save()
-
-
-@try_decorator_param(('KeyError',))
-def check_val_data_for_buyer_cash_docs(
-        serializer_data: OrderedDict,
-        instance: DocumentsBuyerEggsModel) -> None: 
-
-    if serializer_data['buyer_cash_docs']:
-        instance.cash_links_dict_json.update(
-            {str(datetime.today())[:-7]: (DOC_BUYER_CASH +
-                str(serializer_data['buyer_cash_docs']))})
-        instance.save()
-
-
-@try_decorator_param(('KeyError',))
 def check_val_data_contract_for_multy_pay(
         serializer_data: OrderedDict,
         instance: DocumentsContractEggsModel,  
@@ -142,9 +109,20 @@ def check_val_data_contract_for_multy_pay(
             serializer_data['tmp_json_for_multi_pay_order'],
             user,
             instance,
+            cash=False,
         )
-        parse_multi.main()
-        instance.save()
+    elif serializer_data['cash_docs']:
+        instance.cash_docs_links_dict_json.update(
+            {str(datetime.today())[:-7] : (DOC_CONTRACT_CASH +
+                str(serializer_data['cash_docs']))}
+        )
+    parse_multi = MultiDocumentsPaymentParser(
+        serializer_data['tmp_json_for_multi_pay_order'],
+        user,
+        instance,
+    )
+    parse_multi.main()
+    instance.save()
 
 
 @try_decorator_param(('KeyError',))

@@ -2,7 +2,6 @@ from django.db import models
 
 from general_layout.documents.models.docs_for_deal import DocumentsDealModel
 from general_layout.documents.models.docs_for_contragent import DocumentsContragentModel
-from general_layout.documents.models.docs_buyer_cash import DocumentsBuyerModel
 
 from product_eggs.models.origins import OriginsDealEggs
 
@@ -32,16 +31,4 @@ class DocumentsContractEggsModel(DocumentsContragentModel):
 
     def __str__(self):
         return f'Документы по контрагенту {self.pk}'
-
-
-class DocumentsBuyerEggsModel(DocumentsBuyerModel):
-
-    class Meta:
-        db_table = 'DocumentsBuyerEggs'
-        verbose_name = 'Покупатель документы'
-        verbose_name_plural = 'Покупатель документы'
-        ordering = ['pk']
-
-    def __str__(self):
-        return f'{self.pk}'
 

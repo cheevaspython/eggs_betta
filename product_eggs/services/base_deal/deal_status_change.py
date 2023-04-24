@@ -57,9 +57,13 @@ class DealStatusChanger():
         match self._check_status_conditions():
             case 'pass':
                 pass
-            case 'change' if self.check_user_to_can_change():
-                self._change_deal_status()
-                self._send_action()
+            case 'change':
+                if self.check_user_to_can_change():
+                    self._change_deal_status()
+                    self._send_action()
+                else:
+                    raise serializers.ValidationError(
+                        'You cant change status this deal, or deal status is 9')
             case 'complete':
                 self.instance.status += 1
                 search_done_base_deal_messages_and_turn_off(self.instance)
@@ -97,8 +101,7 @@ class DealStatusChanger():
         in deal status library
         """
         #check status
-        if self.instance.deal_status == 0 \
-                or self.instance.deal_status > 8:
+        if self.instance.deal_status > 8:
             return False
         #check superuser
         if self.user in can_edit_deal():

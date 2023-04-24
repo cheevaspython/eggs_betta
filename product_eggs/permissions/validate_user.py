@@ -28,6 +28,13 @@ def validate_user_for_statistic_page_list(request: Request) -> None:
         raise serializers.ValidationError('Permission denied')
 
 
+def validate_user_for_statistic_page_list_logic(request: Request) -> None:
+    PERMISSION_ACCEESS_TO_STATISTIC = list(CustomUser.objects.filter(Q(role=6) | 
+        Q(role=1) | Q(role=2) | Q(role=3) | Q(role=4) | Q(role=5) | Q(role=7) | Q(role=8)))
+    if request.user not in PERMISSION_ACCEESS_TO_STATISTIC:
+        raise serializers.ValidationError('Permission denied')
+
+
 def can_create_conf_anf_calc() -> list[CustomUser]:
     CAN_CREATE_CONFCALC_AND_DEAL = list(CustomUser.objects.filter(Q(role=5) | 
         Q(role=6) | Q(role=8)))

@@ -6,14 +6,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
-from product_eggs.models.documents import DocumentsDealEggsModel, DocumentsBuyerEggsModel, \
-    DocumentsContractEggsModel
+from product_eggs.models.documents import DocumentsDealEggsModel, DocumentsContractEggsModel
 from product_eggs.serializers.documents_serializers import DocumentsDealEggsSerializer, \
-    DocumentsBuyerSerializer, DocumentsContractEggsSerializer, DocumentsDealGetEggsSerializer
+    DocumentsContractEggsSerializer, DocumentsDealGetEggsSerializer
 from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
+from product_eggs.services.documents.documents_srv import deal_docs_dict_json_update, \
+    check_logic_UPD
 from product_eggs.services.validation.check_validated_data import check_val_data_contract_for_contract,\
-    check_val_data_contract_for_multy_pay, check_val_data_for_buyer_cash_docs, \
-    check_validated_data_for_tmp_json, check_validated_data_for_tmp_json_cash
+    check_val_data_contract_for_multy_pay, check_validated_data_for_tmp_json
 from product_eggs.services.raw.documents import deal_docs_get_query
 
 
@@ -44,25 +44,9 @@ class DocumentsViewSet(viewsets.ViewSet):
                 instance,
                 eq_requestuser_is_customuser(self.request.user)
             )
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)    
-
-    @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
-    def patch_buyer_cash(self, request, pk=None) -> Response:
-        instance = DocumentsBuyerEggsModel.objects.get(pk=pk)
-        serializer = DocumentsBuyerSerializer(instance, data=request.data, partial=True) 
-        serializer.is_valid(raise_exception=True)
-
-        if isinstance(serializer.validated_data, OrderedDict):
-            check_validated_data_for_tmp_json_cash(
-                serializer.validated_data,
-                instance,
-                eq_requestuser_is_customuser(self.request.user)
-            )
-            check_val_data_for_buyer_cash_docs(
-                serializer.validated_data,
-                instance,
-            )
+            check_logic_UPD(serializer.validated_data, request.data, instance)
+            deal_docs_dict_json_update(serializer.validated_data, 
+                    eq_requestuser_is_customuser(self.request.user), instance)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)    
 
@@ -73,6 +57,7 @@ class DocumentsViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         if isinstance(serializer.validated_data, OrderedDict):
+
             check_val_data_contract_for_multy_pay(
                 serializer.validated_data,
                 instance,

@@ -1,19 +1,20 @@
+from django.core import validators
 from django.db import models
 
 
 class LogicCard(models.Model):
-    PAY_TYPE = ((20, 'С  НДС'), (0, 'Без НДС'))
 
     class Meta:
         abstract = True
 
     name = models.CharField(
-        max_length=50, null=True, 
-        blank=True, verbose_name='Название перевозчика'
+        max_length=255, unique=True, verbose_name='Название', 
     )
     inn = models.CharField(
-        max_length=20, blank=True, 
-        null=True, verbose_name='ИНН логиста'
+        max_length=12, verbose_name='ИНН / Паспорт',   
+        validators=[validators.MaxLengthValidator(12),
+            validators.MinLengthValidator(10)],
+        primary_key=True,
     )
     general_manager = models.CharField(
         max_length=255, blank=True, 
@@ -30,10 +31,6 @@ class LogicCard(models.Model):
     email = models.EmailField(
         max_length=50, blank=True, 
         null=True, verbose_name='Почта'
-    )
-    pay_type = models.PositiveSmallIntegerField(
-        'Тип оплаты', choices=PAY_TYPE, 
-        null=True, blank=True
     )
     comment = models.CharField(
         max_length=255, blank=True, null=True, 

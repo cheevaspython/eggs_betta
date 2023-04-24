@@ -70,3 +70,36 @@ class StatisticSellerClientSerializer(serializers.ModelSerializer):
     customers_pay_account = serializers.CharField()
     legal_address = serializers.CharField()
     physical_address = serializers.CharField()
+
+
+class StatisticLogicClientSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = DocumentsContractEggsModel
+        fields = '__all__'
+
+    name = serializers.CharField() 
+    inn = serializers.IntegerField() 
+    general_manager = serializers.CharField() 
+    phone = serializers.CharField()
+    email = serializers.EmailField()
+    contact_person = serializers.CharField()
+    comment = serializers.CharField()
+    documents_contract_id = serializers.CharField()
+
+    balance = serializers.FloatField()
+    balance_form_one = serializers.FloatField()
+    balance_form_two = serializers.FloatField()
+
+    general_manager = serializers.CharField()
+    inn = serializers.CharField()
+    bank_name = serializers.CharField()
+    bic_bank = serializers.CharField()
+    cor_account = serializers.CharField()
+    customers_pay_account = serializers.CharField()
+    legal_address = serializers.CharField()
+    physical_address = serializers.CharField()
+
+
+class StatisticLogicBalanceSerializer(serializers.Serializer):
+    ...

@@ -12,9 +12,15 @@ class OriginsDeal(models.Model):
     class Meta:
         abstract = True
 
-    payment_order= models.PositiveSmallIntegerField(
+    payment_order_incoming= models.PositiveSmallIntegerField(
     	choices=STATUS, default=1, 
-        verbose_name='платежное поручение')
+        verbose_name='Входящее платежное поручение')
+    payment_order_outcoming= models.PositiveSmallIntegerField(
+    	choices=STATUS, default=1, 
+        verbose_name='Исходящее платежное поручение')
+    payment_order_outcoming_logic= models.PositiveSmallIntegerField(
+    	choices=STATUS, default=1, 
+        verbose_name='Исходящее платежное поручение логистика')
     specification_seller = models.PositiveSmallIntegerField(
     	choices=STATUS, default=1, 
         verbose_name='Спецификация от продавца')

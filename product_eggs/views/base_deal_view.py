@@ -116,8 +116,10 @@ class BaseDealModelViewSet(viewsets.ViewSet):
         check_create_conf_calculate_user_permission(
             eq_requestuser_is_customuser(self.request.user))
         instance = BaseDealEggsModel.objects.get(pk=pk)
+        create_relation_deal_status_and_deal_docs(instance)
         check_pre_status_for_create(instance, 1)
-        serializer = ConfirmedCalculateEggsSerializer(instance, data=request.data, partial=True) 
+        serializer = ConfirmedCalculateEggsSerializer(
+            instance, data=request.data, partial=True) 
         serializer.is_valid(raise_exception=True)
 
         if isinstance(serializer.validated_data, OrderedDict):
@@ -183,7 +185,6 @@ class BaseDealModelViewSet(viewsets.ViewSet):
             eq_requestuser_is_customuser(self.request.user))
         instance = BaseDealEggsModel.objects.get(pk=pk)  
         check_pre_status_for_create(instance, 2)
-        create_relation_deal_status_and_deal_docs(instance)
         #search_done_base_deal_messages_and_turn_off(instance) #TODO
         serializer = BaseDealEggsSerializer(instance, data=request.data, partial=True) 
         serializer.is_valid(raise_exception=True)
@@ -261,7 +262,6 @@ class BaseDealModelViewSet(viewsets.ViewSet):
                     status_comp_deal_list_query_is_active(pk), many=True) 
             case _:
                 serializer = None
-
         if serializer:
             if init_logic_user(request.user):
                 return Response(get_return_edited_hide_data(serializer.data),

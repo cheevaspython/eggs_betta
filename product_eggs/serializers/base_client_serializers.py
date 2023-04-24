@@ -36,18 +36,19 @@ class BuyerCardEggsDetailSerializer(serializers.ModelSerializer):
             'name', 'inn', 'contact_person', 'phone', 'email', 'comment', 'general_manager', 
             'requisites', 'current_requisites', 'warehouse_address_1', 'warehouse_address_2', 
             'warehouse_address_3', 'warehouse_address_4', 'warehouse_address_5', 'documents_contract',
-            'current_contract', 'pay_limit', 'region', 'balance_form_one', 'balance_form_one', 'docs_cash',
+            'current_contract', 'pay_limit', 'region', 'balance_form_one', 'balance_form_one', 
             'manager', 'pay_limit_cash', 'balance',   
         ]
 
 
 class LogicCardEggsDetailSerializer(serializers.ModelSerializer):
     current_requisites = RequisitesDetailSerializer(read_only=True, source='requisites')
-    # current_contract = DocumentsContractEggsSerializer(read_only=True, source='documents_contract')
+    current_contract = DocumentsContractEggsSerializer(read_only=True, source='documents_contract')
 
     class Meta:
         model = LogicCardEggs
         fields = [
-            'id', 'name', 'inn', 'contact_person', 'phone', 'email', 'pay_type', 'comment', 
+            'name', 'inn', 'contact_person', 'phone', 'email', 'comment', 
             'requisites', 'current_requisites', 'documents_contract', 'general_manager',
+            'balance_form_one', 'balance_form_one', 'balance', 'current_contract',
         ]

@@ -4,7 +4,6 @@ from product_eggs.models.base_deal import BaseDealEggsModel
         
 
 def status_calc_list_query_is_active(pk: int | None = None) -> RawQuerySet:
-
     add_data = f'c.id = {pk} AND' if pk else ''
     status_calculate_is_active = BaseDealEggsModel.objects.raw(
         f"""SELECT  c.id, c."cB", c.c0, c.c1, c.c2, c.c3, c.dirt, c."seller_cB_cost",
@@ -14,7 +13,7 @@ def status_calc_list_query_is_active(pk: int | None = None) -> RawQuerySet:
                 c.buyer_c3_cost, c.buyer_dirt_cost, c.application_from_buyer_id,
                 c.application_from_seller_id, c.buyer_id, c.seller_id, c.owner_id,
                 c.status, c.comment, c.note_calc, c.cash, c.import_application,
-                c.delivery_cost, c.is_active, 
+                c.delivery_cost, c.is_active, c.delivery_form_payment, 
                 c.delivery_type_of_payment, c.delivery_by_seller, 
                 c.delivery_date_from_seller, c.delivery_date_to_buyer, 
                 c.current_deal_our_debt, c.current_deal_buyer_debt, 
@@ -33,9 +32,7 @@ def status_calc_list_query_is_active(pk: int | None = None) -> RawQuerySet:
 
 
 def status_conf_calc_list_query_is_active(pk: int | None = None) -> RawQuerySet:
-
     add_data = f'c.id = {pk} AND' if pk else ''
-
     status_conf_calculate_is_active = BaseDealEggsModel.objects.raw(
         f"""SELECT  c.id, c."cB", c.c0, c.c1, c.c2, c.c3, c.dirt, c."seller_cB_cost",
                 c.seller_c0_cost, c.seller_c1_cost, c.seller_c2_cost,
@@ -45,23 +42,24 @@ def status_conf_calc_list_query_is_active(pk: int | None = None) -> RawQuerySet:
                 c.additional_expense_id, c.application_from_buyer_id,
                 c.application_from_seller_id, c.buyer_id, c.seller_id,
                 c.owner_id, c.status, c.comment, c.note_calc, c.note_conf_calc,
-                c.cash, c.import_application, 
+                c.cash, c.import_application, c.delivery_form_payment,
                 c.delivery_cost, c.is_active, c.calc_ready, c.logic_confirmed,
                 c.delivery_type_of_payment, c.delivery_by_seller, 
                 c.delivery_date_from_seller, c.delivery_date_to_buyer, 
                 c.current_deal_our_debt, c.current_deal_buyer_debt, 
-                c.loading_address, c.unloading_address, c.margin, 
+                c.logic_our_debt_for_app_contract, c.logic_our_debt_current,
+                c.loading_address, c.unloading_address, c.margin, c.documents_id,
                 c.postponement_pay_for_us, c.postponement_pay_for_buyer,
                 b.inn, b.name as buyer_name, s.inn, s.name as seller_name,
                 u.id, u.username as owner_name,
-                l.id, l.name as logic_name, l.inn as logic_inn,
+                l.name as logic_name, l.inn as logic_inn,
                 a.id, a.expense_total, a.expense_detail_json 
             FROM "BaseDealModelEggs" AS c
             INNER JOIN "BuyerCardEggs" AS b ON b.inn = c.buyer_id
             INNER JOIN "SellerCardEggs" AS s ON s.inn = c.seller_id
             LEFT JOIN "users_customuser" AS u ON u.id = c.owner_id
             LEFT JOIN additional_expense AS a ON a.id = c.additional_expense_id
-            LEFT JOIN "LogicEggs" AS l ON l.id = c.current_logic_id
+            LEFT JOIN "LogicCardEggs" AS l ON l.inn = c.current_logic_id
             WHERE {add_data} c.is_active = true AND c.status = 2 
             ORDER BY c.id;"""
     )
@@ -69,9 +67,7 @@ def status_conf_calc_list_query_is_active(pk: int | None = None) -> RawQuerySet:
 
 
 def status_deal_list_query_is_active(pk: int | None = None) -> RawQuerySet:
-
     add_data = f'c.id = {pk} AND' if pk else ''
-
     status_deal_is_active = BaseDealEggsModel.objects.raw(
         f"""SELECT  c.id, c."cB", c.c0, c.c1, c.c2, c.c3, c.dirt, c."seller_cB_cost",
                 c.seller_c0_cost, c.seller_c1_cost, c.seller_c2_cost,
@@ -81,11 +77,12 @@ def status_deal_list_query_is_active(pk: int | None = None) -> RawQuerySet:
                 c.additional_expense_id, c.application_from_buyer_id,
                 c.application_from_seller_id, c.buyer_id, c.seller_id,
                 c.owner_id, c.status, c.comment, c.note_calc, c.note_conf_calc,
-                c.cash, c.import_application, 
+                c.cash, c.import_application, c.delivery_form_payment,
                 c.delivery_cost, c.is_active, c.calc_ready, c.logic_confirmed,
                 c.delivery_type_of_payment, c.delivery_by_seller, 
                 c.delivery_date_from_seller, c.delivery_date_to_buyer, 
-                c.loading_address, c.unloading_address, c.margin, 
+                c.logic_our_debt_for_app_contract, c.logic_our_debt_current,
+                c.loading_address, c.unloading_address, c.margin, c.documents_id,
                 c.postponement_pay_for_us, c.postponement_pay_for_buyer,
                 c.documents_id, c.deal_status, c.actual_loading_date,
                 c.actual_unloading_date, c.payback_day_for_us, c.payback_day_for_buyer,
@@ -93,14 +90,14 @@ def status_deal_list_query_is_active(pk: int | None = None) -> RawQuerySet:
                 c."deal_our_debt_UPD", c."deal_buyer_debt_UPD",
                 b.inn, b.name as buyer_name, s.inn, s.name as seller_name,
                 u.id, u.username as owner_name, 
-                l.id, l.name as logic_name, l.inn as logic_inn,
+                l.name as logic_name, l.inn as logic_inn,
                 a.id, a.expense_total, a.expense_detail_json
             FROM "BaseDealModelEggs" AS c
             INNER JOIN "BuyerCardEggs" AS b ON b.inn = c.buyer_id
             INNER JOIN "SellerCardEggs" AS s ON s.inn = c.seller_id
             LEFT JOIN "users_customuser" AS u ON u.id = c.owner_id
             LEFT JOIN additional_expense AS a ON a.id = c.additional_expense_id
-            LEFT JOIN "LogicEggs" AS l ON l.id = c.current_logic_id
+            LEFT JOIN "LogicCardEggs" AS l ON l.inn = c.current_logic_id
             WHERE {add_data} c.is_active = true AND c.status = 3 
             ORDER BY c.id;"""
     )
@@ -108,9 +105,7 @@ def status_deal_list_query_is_active(pk: int | None = None) -> RawQuerySet:
 
 
 def status_comp_deal_list_query_is_active(pk: int | None = None) -> RawQuerySet:
-
     add_data = f'c.id = {pk} AND' if pk else ''
-
     status_deal_is_active = BaseDealEggsModel.objects.raw(
         f"""SELECT  c.id, c."cB", c.c0, c.c1, c.c2, c.c3, c.dirt, c."seller_cB_cost",
                 c.seller_c0_cost, c.seller_c1_cost, c.seller_c2_cost,
@@ -124,7 +119,8 @@ def status_comp_deal_list_query_is_active(pk: int | None = None) -> RawQuerySet:
                 c.delivery_cost, c.is_active, c.calc_ready, c.logic_confirmed,
                 c.delivery_type_of_payment, c.delivery_by_seller, 
                 c.delivery_date_from_seller, c.delivery_date_to_buyer, 
-                c.loading_address, c.unloading_address, c.margin, 
+                c.logic_our_debt_for_app_contract, c.logic_our_debt_current,
+                c.loading_address, c.unloading_address, c.margin, c.documents_id,
                 c.postponement_pay_for_us, c.postponement_pay_for_buyer,
                 c.documents_id, c.deal_status, c.actual_loading_date,
                 c.actual_unloading_date, c.payback_day_for_us, c.payback_day_for_buyer,
@@ -134,14 +130,14 @@ def status_comp_deal_list_query_is_active(pk: int | None = None) -> RawQuerySet:
                 c.log_status_deal_query,
                 b.inn, b.name as buyer_name, s.inn, s.name as seller_name,
                 u.id, u.username as owner_name, 
-                l.id, l.name as logic_name, l.inn as logic_inn,
+                l.name as logic_name, l.inn as logic_inn,
                 a.id, a.expense_total, a.expense_detail_json
             FROM "BaseDealModelEggs" AS c
             INNER JOIN "BuyerCardEggs" AS b ON b.inn = c.buyer_id
             INNER JOIN "SellerCardEggs" AS s ON s.inn = c.seller_id
             LEFT JOIN "users_customuser" AS u ON u.id = c.owner_id
             LEFT JOIN additional_expense AS a ON a.id = c.additional_expense_id
-            LEFT JOIN "LogicEggs" AS l ON l.id = c.current_logic_id
+            LEFT JOIN "LogicCardEggs" AS l ON l.inn = c.current_logic_id
             WHERE {add_data} c.is_active = true AND c.status = 3 
             ORDER BY c.id;"""
     )

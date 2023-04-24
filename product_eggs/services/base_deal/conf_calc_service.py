@@ -1,8 +1,8 @@
 from collections import OrderedDict
 
 from rest_framework import serializers
-from product_eggs.models.additional_expense import AdditionalExpenseEggs
 
+from product_eggs.models.additional_expense import AdditionalExpenseEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.services.create_model import  CreatorNewModel
 from product_eggs.services.decorators import try_decorator_param
@@ -10,12 +10,16 @@ from product_eggs.services.messages.messages_library import MessageLibrarrySend
                  
 
 def check_fields_values_to_calc_ready(instance: BaseDealEggsModel) -> bool | None:
-    if instance.status == 2:
+    if instance.status == 2 and instance.documents:
         conf_calc_fields = (instance.current_logic,
             instance.delivery_date_from_seller,
             instance.delivery_date_to_buyer,
             instance.delivery_cost,
             instance.logic_confirmed,
+            instance.delivery_form_payment,
+            instance.delivery_type_of_payment,
+            instance.logic_our_debt_for_app_contract,
+            instance.documents.application_contract_logic,
         )
         for item in conf_calc_fields:
             if item is None or False:

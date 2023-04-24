@@ -61,10 +61,9 @@ class OtherPays():
     deal: str
     documents_id: str
     pay_quantity: str | float
-    doc_type: str = ''
+    doc_type: str
 
     def __post_init__(self):
-        self.doc_type = 'payment_order_incoming'
         self.pay_quantity = float(self.pay_quantity)
 
     def __getitem__(self, item):

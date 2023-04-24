@@ -1,9 +1,9 @@
 from rest_framework import permissions
 
-from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs, LogicCardEggs 
+from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs, LogicCardEggs
+from product_eggs.models.documents import DocumentsContractEggsModel 
 from product_eggs.permissions.base_card_permissions import check_create_base_card_user_permission
 from product_eggs.services.requisites import create_requisites_model
-from product_eggs.services.documents.documents_get import create_docs_cash_model, create_docs_conteragent_model
 from product_eggs.serializers.base_client_serializers import SellerCardEggsDetailSerializer, \
     BuyerCardEggsDetailSerializer, LogicCardEggsDetailSerializer, RequisitesDetailSerializer
 from product_eggs.models.custom_model_viewset import CustomModelViewSet
@@ -24,7 +24,7 @@ class SellerCardEggsViewSet(CustomModelViewSet):
         serializer.save()
 
         current_seller = self.queryset.get(inn=serializer.data['inn'])
-        create_docs_conteragent_model(current_seller)
+        current_seller.documents_contract = DocumentsContractEggsModel.objects.create()
         current_seller.requisites = new_requisites
         current_seller.save()
 
@@ -43,9 +43,8 @@ class BuyerCardEggsViewSet(CustomModelViewSet):
         serializer.save()  
 
         current_buyer = self.queryset.get(inn=serializer.data['inn'])
-        create_docs_conteragent_model(current_buyer)
+        current_buyer.documents_contract = DocumentsContractEggsModel.objects.create()
         current_buyer.requisites = new_requisites
-        create_docs_cash_model(current_buyer)
         current_buyer.save()
 
 
@@ -63,5 +62,6 @@ class LogicCardEggsViewSet(CustomModelViewSet):
         serializer.save()
 
         current_logic = self.queryset.get(inn=serializer.data['inn'])
+        current_logic.documents_contract = DocumentsContractEggsModel.objects.create()
         current_logic.requisites = new_requisites
         current_logic.save()

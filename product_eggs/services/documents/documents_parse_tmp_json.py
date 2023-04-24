@@ -7,7 +7,8 @@ from rest_framework import serializers
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel, \
     DocumentsDealEggsModel
-from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
+from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
+from product_eggs.models.tails import TailsContragentModelEggs
 # from product_eggs.services.base_deal.deal_services import status_check
 from product_eggs.services.decorators import try_decorator_param
 from product_eggs.services.get_anything.try_to_get_models import get_client_for_inn, \
@@ -16,7 +17,7 @@ from product_eggs.services.data_class import OtherPayTmpData, PayOrderDataForSav
     PayOrderDataForSaveMulti
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from product_eggs.services.statistic import ContragentBalanceForm
-from product_eggs.services.documents.documents_get import try_to_get_documents_model, update_and_save_data_number_json
+from product_eggs.services.documents.documents_get import update_and_save_data_number_json
 from users.models import CustomUser
 
 
@@ -40,7 +41,7 @@ class DealDocumentsPaymentParser():
         if isinstance(self.deal, BaseDealEggsModel): 
             # status_check(self.deal, (3, 4,))
             self.pay_client  = get_client_for_inn(self.pay_data['inn']) 
-            if isinstance(self.pay_client , Union[SellerCardEggs, BuyerCardEggs]):
+            if isinstance(self.pay_client, Union[SellerCardEggs, BuyerCardEggs, LogicCardEggs]):
                 self.client_documents_model = self.pay_client.documents_contract
                 return True
             else:
@@ -101,12 +102,13 @@ class MultiDocumentsPaymentParser():
             multi_pay_data: dict,
             user: CustomUser,
             current_document_contract: DocumentsContractEggsModel | None,
-                 ):
+            cash: bool = True):
         self._multi_pay_data = multi_pay_data
         self.user = user
         self.doc_contract = current_document_contract
         self._multi_pay_data['user'] = self.user.pk
         self.save_data_for_update = list()
+        self.cash = cash
 
     @try_decorator_param(('TypeError',))
     def convert_pay_multi_data(self) -> PayOrderDataForSaveMulti | None:
@@ -181,13 +183,16 @@ class MultiDocumentsPaymentParser():
         self.get_documents_contract()
         self.send_message_to_finance_manager()
 
-    def tail_save(self):
+    def tail_save(self) -> TailsContragentModelEggs | None:
         from product_eggs.services.tails import tails_treatment
         if self.client:
-            if self.multi_pay_dict['tail_form_one'] or \
-                    self.multi_pay_dict['tail_form_two']:
-                self.multi_pay_dict.pop('other_pays', None)
-                tails_treatment(self.multi_pay_dict, self.client)
+            if isinstance(self.client, LogicCardEggs):
+                pass
+            else:
+                if self.multi_pay_dict['tail_form_one'] or \
+                        self.multi_pay_dict['tail_form_two']:
+                    self.multi_pay_dict.pop('other_pays', None)
+                    return tails_treatment(self.multi_pay_dict, self.client)
     
     def update_multi_pay_doc_model_json(self):
         if self.doc_contract:
@@ -196,8 +201,15 @@ class MultiDocumentsPaymentParser():
 
     def update_data_num_doc_model_json(self):
         if self.doc_contract:
-            update_and_save_data_number_json(
-                self.multi_pay_dict, self.doc_contract)
+            if self.cash:
+                update_and_save_data_number_json(
+                    self.multi_pay_dict, 
+                    self.doc_contract,
+                    cash=True)
+            else:
+                update_and_save_data_number_json(
+                    self.multi_pay_dict, 
+                    self.doc_contract)
 
     def main(self):
         """
@@ -207,7 +219,6 @@ class MultiDocumentsPaymentParser():
         self.check_entry_data()
         self.get_documents_contract()
         self.splitter_multi_order()
-        self.tail_save()
         self.update_multi_pay_doc_model_json()
         self.update_data_num_doc_model_json()
 

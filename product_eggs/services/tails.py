@@ -27,7 +27,7 @@ def add_tail_model_to_client(client: BuyerCardEggs | SellerCardEggs) -> None:
 
 def tails_treatment(
         multy_pay_dict: dict,
-        client: BuyerCardEggs | SellerCardEggs) -> None:
+        client: BuyerCardEggs | SellerCardEggs) -> TailsContragentModelEggs:
     """
     add deposit in form
     add count tails
@@ -43,7 +43,7 @@ def tails_treatment(
             {str(uuid.uuid4()): multy_pay_dict})
         client.tails.tmp_json_for_multi_pay_order = {}
         client.tails.tmp_key_form_dict = {}
-        client.tails.save()
+        return client.tails
     else:
         client.tails.current_tail_form_two += multy_pay_dict['tail_form_two'] 
         client.tails.active_tails_form_two += 1
@@ -53,6 +53,7 @@ def tails_treatment(
         client.tails.tmp_json_for_multi_pay_order = {}
         client.tails.tmp_key_form_dict = {}
         client.tails.save()
+        return client.tails
 
 
 def subtract_tail_amount_and_actives(
@@ -85,7 +86,8 @@ def subtract_tail_amount_and_actives(
 @transaction.atomic
 def transaction_tails_data(
         parse_val_data: dict,
-        user: CustomUser,) -> None:
+        user: CustomUser,
+        key_dict: dict) -> None:
     """
     Tail data transtaction.
     """
@@ -95,6 +97,10 @@ def transaction_tails_data(
         current_document_contract=None,
     )
     parse_tail.main()
+    if tail_model := parse_tail.tail_save():
+        subtract_tail_amount_and_actives(tail_model, key_dict)
+    else:
+        serializers.ValidationError('transaction fail')
 
 
 def wrong_entry_tail_data(validated_data: OrderedDict) -> None:

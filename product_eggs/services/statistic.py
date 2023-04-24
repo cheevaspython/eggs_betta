@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from product_eggs.models.base_client import SellerCardEggs, BuyerCardEggs
+from product_eggs.models.base_client import LogicCardEggs, SellerCardEggs, BuyerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
 
 
@@ -19,11 +19,15 @@ class MultiPayOrderBalance(BalanceClient):
     '''
     Изменяет баланс клиента при общем платежном поручении.
     '''
-    def __init__(self, pay_client: SellerCardEggs | BuyerCardEggs, money_amount: float):
+    def __init__(self,
+            pay_client: SellerCardEggs | BuyerCardEggs | LogicCardEggs,
+            money_amount: float):
+
         self.pay_client = pay_client
         self.money_amount = money_amount
 
     def add_money_amount_for_buyer_form(self, cash: bool = False) -> None:
+
         if isinstance(self.pay_client, BuyerCardEggs):
             if cash:
                 self.pay_client.balance_form_two += self.money_amount
@@ -41,7 +45,8 @@ class BaseBalanceAbstract(BalanceClient):
     Базовый абстрактный класс по работе с балансом клиента.
     '''
     def __init__(self, current_model: BaseDealEggsModel,
-            pay_client: SellerCardEggs | BuyerCardEggs, money_amount: float): 
+            pay_client: SellerCardEggs | BuyerCardEggs | LogicCardEggs,
+            money_amount: float): 
         self.current_deal = current_model
         self.money_amount = money_amount
         self.pay_client = pay_client
@@ -50,6 +55,12 @@ class BaseBalanceAbstract(BalanceClient):
         '''
         Mетод оплаты покупателем.
         '''
+
+    def add_money_amount_to_logic(self, UPD: bool = False):
+        '''
+        Добавление в баланс логисту.
+        '''
+
     def __repr__(self) -> str:
             return f'{type(self).__name__}'
 
@@ -78,5 +89,15 @@ class ContragentBalanceForm(BaseBalanceAbstract):
                         self.pay_client.balance_form_one += self.money_amount
                         self.pay_client.save()
 
+    def add_money_amount_to_logic(self):
+        '''
+        Добавление в баланс логисту.
+        '''
+        if self.current_deal.delivery_form_payment == 3:
+            self.pay_client.balance_form_two += self.money_amount
+            self.pay_client.save()
+        else:
+            self.pay_client.balance_form_one += self.money_amount
+            self.pay_client.save()
 
 

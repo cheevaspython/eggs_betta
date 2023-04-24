@@ -6,7 +6,7 @@ from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, \
     SellerCardEggs
 from product_eggs.models.additional_expense import AdditionalExpenseEggs
 from product_eggs.models.documents import DocumentsDealEggsModel
-from product_eggs.services.base_deal.margin import calculate_margin_python
+from product_eggs.services.base_deal.margin import calculate_margin
 from product_eggs.tasks import change_client_balance_deal
 from users.models import CustomUser
     
@@ -31,6 +31,16 @@ class BaseDealEggsModel(models.Model):
         (2, 'Подтвержденный просчет'),
         (3, 'Сделка'),
         (4, 'Закрытая сделка'),
+    )
+    STATUS_LOGIC_PAY_FORM = (
+        (1, 'Оплата по форме 1, c НДС'),
+        (2, 'Оплата по форме 1, без НДС'),
+        (3, 'Оплата по форме 2'),
+    )
+    STATUS_LOGIC_PAY_TYPE = (
+        (1, 'Оплата 50 / 50'),
+        (2, 'Оплата по факту выгрузки'),
+        (3, 'Авансовая оплата'),
     )
     DEAL_STATUS = (
         (0, 'не подтверждена'),
@@ -96,6 +106,16 @@ class BaseDealEggsModel(models.Model):
     deal_status = models.PositiveSmallIntegerField(
         choices=DEAL_STATUS, default=0, verbose_name='Статус сделки',
     )
+    delivery_form_payment = models.PositiveSmallIntegerField(
+        choices=STATUS_LOGIC_PAY_FORM, default=1, 
+        blank=True, null=True,
+        verbose_name='Статус формы оплаты логистики',
+    )
+    delivery_type_of_payment = models.PositiveSmallIntegerField(
+        choices=STATUS_LOGIC_PAY_TYPE, default=1,
+        blank=True, null=True,
+        verbose_name='Статус типа оплаты логистики',
+    )
     # Комменты 
     comment = models.TextField(
         max_length=1000, verbose_name='Комментарий', null=True, blank=True,
@@ -126,15 +146,12 @@ class BaseDealEggsModel(models.Model):
         editable=True, default=False, 
         verbose_name='Процесс смены статуса',
     )
+    delivery_by_seller = models.BooleanField(
+        editable=True, default=False, verbose_name='Доставка от продавца',
+    )
     # Логистика
     delivery_cost = models.FloatField( 
         verbose_name='Стоимость доставки', default=0, 
-    )
-    delivery_type_of_payment = models.PositiveSmallIntegerField(
-        verbose_name='Тип оплаты доставки', choices=PAY_TYPE, default=20,
-    )
-    delivery_by_seller = models.BooleanField(
-        editable=True, default=False, verbose_name='Доставка от продавца',
     )
     delivery_date_from_seller = models.DateField(
         verbose_name='Дата погрузки', null=True, 
@@ -155,6 +172,14 @@ class BaseDealEggsModel(models.Model):
         verbose_name='Фактическая дата разгрузки', blank=True, null=True,
     )
     # Оплата
+    logic_our_debt_for_app_contract = models.FloatField(
+        default=0,
+        verbose_name='Долг перед логистом по договору-заявке', 
+    )
+    logic_our_debt_current = models.FloatField(
+        default=0,
+        verbose_name='Долг перед логистом текущий', 
+    )
     payback_day_for_us = models.DateField(
         verbose_name='Дата оплаты для нас', null=True, blank=True, 
     )
@@ -242,16 +267,15 @@ class BaseDealEggsModel(models.Model):
     buyer_dirt_cost = models.FloatField(
         verbose_name='Стоимость продажи за десяток', default=0,
     )
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__current_deal_our_debt = self.current_deal_our_debt
         self.__current_deal_buyer_debt = self.current_deal_buyer_debt
 
-    def save(self, *args, **kvargs):
+    def save(self, *args, **kwargs):
         self.current_deal_buyer_debt = round(self.current_deal_buyer_debt, 2)
         self.current_deal_our_debt = round(self.current_deal_our_debt, 2)
-        self.margin = calculate_margin_python(self)
+        self.margin = calculate_margin(self)
 
         if self.current_deal_our_debt != self.__current_deal_our_debt:
             delta = self.__current_deal_our_debt - self.current_deal_our_debt 
@@ -261,7 +285,7 @@ class BaseDealEggsModel(models.Model):
             delta = self.__current_deal_buyer_debt - self.current_deal_buyer_debt 
             change_client_balance_deal(self.buyer, delta, self.cash) 
 
-        super(BaseDealEggsModel, self).save(*args, **kvargs)
+        super(BaseDealEggsModel, self).save(*args, **kwargs)
 
     def __str__(self):
         return f'Базовая сделка №{self.pk}, статус №{self.status}'

@@ -9,7 +9,7 @@ from product_eggs.models.base_deal import BaseDealEggsModel
 from users.models import CustomUser
 
 
-@dataclass
+@dataclass(slots=True)
 class ClientTailForm():
     """
     Form to payorder (cash or bank)

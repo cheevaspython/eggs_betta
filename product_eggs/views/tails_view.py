@@ -33,6 +33,7 @@ class TailsEggsViewSet(viewsets.ViewSet):
                 transaction_tails_data(
                     serializer.validated_data['tmp_json_for_multi_pay_order'],
                     eq_requestuser_is_customuser(self.request.user),
+                    serializer.validated_data['tmp_key_form_dict'],
                 )
 
         return Response(serializer.data, status=status.HTTP_200_OK)    

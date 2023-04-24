@@ -3,14 +3,15 @@ from typing import Optional
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
-from product_eggs.models.base_client import SellerCardEggs, BuyerCardEggs
+from product_eggs.models.base_client import LogicCardEggs, SellerCardEggs, BuyerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsDealEggsModel
 from product_eggs.services.decorators import try_decorator_param
     
 
 def get_client_for_inn(
-        entry_inn: str) -> Optional[SellerCardEggs | BuyerCardEggs]:
+        entry_inn: str,
+        ) -> Optional[SellerCardEggs | BuyerCardEggs | LogicCardEggs]:
     """ 
     Получает модель клиента по ИНН,
     raise exception в случае если ИНН не числится в базе.
@@ -25,8 +26,13 @@ def get_client_for_inn(
         return buyer
     except ObjectDoesNotExist:
         pass
+    try:
+        logic = LogicCardEggs.objects.get(inn=entry_inn)
+        return logic
+    except ObjectDoesNotExist:
+        pass
 
-    raise serializers.ValidationError('inn client is invalid, check entry data')
+    raise serializers.ValidationError('inn client/logic is invalid, check entry data')
 
 
 def get_client_for_tail_pk(

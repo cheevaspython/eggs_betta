@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from product_eggs.models.base_deal import BaseDealEggsModel
-from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
+from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
 from product_eggs.services.statistic import BaseBalanceAbstract
 from product_eggs.services.data_class import PayOrderDataForSave
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
@@ -21,7 +21,7 @@ class DealPayOrderUPDservice():
     def __init__(self, 
         dict_data_detail: PayOrderDataForSave,
         current_deal: BaseDealEggsModel,
-        pay_client: SellerCardEggs | BuyerCardEggs,
+        pay_client: SellerCardEggs | BuyerCardEggs | LogicCardEggs,
         balance: BaseBalanceAbstract):
         
         self.data = dict_data_detail
@@ -41,7 +41,7 @@ class DealPayOrderUPDservice():
             if self.data.doc_type in DICT_UPD:
                 DICT_UPD[self.data.doc_type](self.data.date)
         except ObjectDoesNotExist as e:
-            print(e)
+            pass
 
     def add_payback_day_for_us(self, date_incoming_UPD: str) -> None:
         """
@@ -73,8 +73,9 @@ class DealPayOrderUPDservice():
         """
 
         match self.data.doc_type:
+
             case 'UPD_incoming':
-                if self.deal.current_deal_our_debt:
+                if self.deal.deal_our_debt_UPD:
                     raise serializers.ValidationError(
                         f"По сделке №{self.deal.pk} долг перед нами уже зафиксирован, " +
                         f"проверьте данные"
@@ -83,8 +84,9 @@ class DealPayOrderUPDservice():
                     self.deal.current_deal_our_debt += self.data.pay_quantity
                     self.deal.deal_our_debt_UPD += self.data.pay_quantity
                     self._balance.add_money_amount_for_buyer_form(UPD=True)
+
             case 'UPD_outgoing':
-                if self.deal.current_deal_buyer_debt:
+                if self.deal.deal_buyer_debt_UPD:
                     raise serializers.ValidationError(
                         f"По сделке №{self.deal.pk} долг перед продавцом уже зафиксирован, " +
                         f"проверьте данные"
@@ -93,6 +95,53 @@ class DealPayOrderUPDservice():
                     self.deal.current_deal_buyer_debt += self.data.pay_quantity
                     self.deal.deal_buyer_debt_UPD += self.data.pay_quantity
                     self._balance.add_money_amount_for_buyer_form(UPD=True)
+
+            case 'application_contract_logic':
+                if self.deal.logic_our_debt_for_app_contract:
+                    raise serializers.ValidationError(
+                        f"По сделке №{self.deal.pk} долг перед логистом уже зафиксирован, " +
+                        f"проверьте данные"
+                        )
+                else:
+                    self.deal.logic_our_debt_current += self.data.pay_quantity
+                    self.deal.logic_our_debt_for_app_contract += self.data.pay_quantity
+                    self._balance.add_money_amount_to_logic()
+
+            case 'payment_order_outcoming_logic':
+                if self.deal.logic_our_debt_current <= 0: 
+                    raise serializers.ValidationError(
+                        f'У сделки №{self.deal.pk}, долга перед перевозчиком нет, проверьте данные'
+                        )
+                else:
+                    old_debt = self.deal.logic_our_debt_current 
+                    self.deal.logic_our_debt_current -= self.data.pay_quantity
+                    if self.deal.logic_our_debt_current < 0:
+                        raise serializers.ValidationError(
+                            f"У сделки №{self.deal.pk}, наш долг перед перевозчиком составляет - {old_debt}, " +
+                            f"Вы вностите {self.data.pay_quantity}, разница составляет -" +
+                            f"{self.deal.logic_our_debt_current}, проверьте данные"
+                        )
+                    elif self.deal.logic_our_debt_current == 0:
+                        self._balance.add_money_amount_to_logic()
+                        message = MessageLibrarrySend(
+                            'message_to_finance_director',
+                            self.pay_client,
+                            f"По сделке №{self.deal.pk} - долг перед перевозчиком закрыт" + 
+                            f"ПП от {self.pay_client}/{self.data.inn} на сумму {self.data.pay_quantity}",
+                        )
+                        message.send_message()
+                    else:
+                        self._balance.add_money_amount_to_logic()
+                        message = MessageLibrarrySend(
+                            'message_to_finance_director',
+                            self.pay_client,
+                            f"ПП от {self.pay_client}/{self.data.inn} по сделке №{self.deal.pk}, " +
+                            f"на сумму {self.data.pay_quantity} внесен, " +
+                            f"остаток долга перед перевозчиком составляет - " +
+                            f"{self.deal.logic_our_debt_current}",
+                        )
+                        message.send_message()
+
             case 'payment_order_outcoming':
                 if self.deal.current_deal_our_debt <= 0: 
                     raise serializers.ValidationError(
@@ -127,6 +176,7 @@ class DealPayOrderUPDservice():
                             f"{self.deal.current_deal_our_debt}",
                         )
                         message.send_message()
+
             case 'payment_order_incoming':
                 if self.deal.current_deal_buyer_debt <= 0: 
                     raise serializers.ValidationError(
