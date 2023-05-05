@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from collections import OrderedDict
 
@@ -8,6 +9,8 @@ from product_eggs.services.documents.docs_get_link import get_half_link_for_save
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from users.models import CustomUser
 
+
+logger = logging.getLogger(__name__)
 
 def deal_docs_dict_json_update(
         serializer_data: OrderedDict,
@@ -41,6 +44,7 @@ def check_logic_UPD(serializer_data: OrderedDict,
         request_data: OrderedDict,
         instance: DocumentsDealEggsModel) -> None: 
     """
+    If UPD_logic -> send message to role 7 
     """
     if serializer_data['UPD_logic']:
         current_deal = BaseDealEggsModel.objects.get(documents=instance.pk)
@@ -58,22 +62,20 @@ def check_logic_UPD(serializer_data: OrderedDict,
                 )
                 message.send_message()
             case 3:
-                pass
+                if amount_advance := parse_request_data_for_amount_advance(request_data):
+                    current_deal = BaseDealEggsModel.objects.get(documents=instance.pk)
+                    message = MessageLibrarrySend(
+                        'message_advance_payment',
+                    current_deal,
+                    amount_advance,
+                    )
+                    message.send_message()
             case _:
-                print('wtf !!!')
-
-    if amount_advance := parse_request_data_for_amount_advance(request_data):
-        current_deal = BaseDealEggsModel.objects.get(documents=instance.pk)
-        message = MessageLibrarrySend(
-            'message_advance_payment',
-            current_deal,
-            amount_advance,
-        )
-        message.send_message()
+                logging.warning('case_ in services/docs_srv')
 
     
-def parse_request_data_for_amount_advance(request_data: OrderedDict) -> str:
+def parse_request_data_for_amount_advance(request_data: OrderedDict) -> str | None:
     try:
         return request_data['amount_advance']
     except KeyError:
-        return '0'
+        return None

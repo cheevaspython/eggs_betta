@@ -100,9 +100,9 @@ def check_val_data_contract_for_multy_pay(
         instance: DocumentsContractEggsModel,  
         user: CustomUser) -> None:
 
-    if serializer_data['multi_pay_order']:
+    if check_data_for_value(serializer_data, 'multi_pay_order'):
         instance.multi_pay_order_links_dict_json.update(
-            {str(datetime.today())[:-7] : (DOC_CONTRACT_MULTY_PAY +
+            {str(datetime.today())[:-7]: (DOC_CONTRACT_MULTY_PAY +
                 str(serializer_data['multi_pay_order']))}
         )
         parse_multi = MultiDocumentsPaymentParser(
@@ -111,18 +111,31 @@ def check_val_data_contract_for_multy_pay(
             instance,
             cash=False,
         )
-    elif serializer_data['cash_docs']:
+        parse_multi.main()
+    elif check_data_for_value(serializer_data, 'cash_docs'):
         instance.cash_docs_links_dict_json.update(
-            {str(datetime.today())[:-7] : (DOC_CONTRACT_CASH +
+            {str(datetime.today())[:-7]: (DOC_CONTRACT_CASH +
                 str(serializer_data['cash_docs']))}
         )
-    parse_multi = MultiDocumentsPaymentParser(
+        parse_multi = MultiDocumentsPaymentParser(
         serializer_data['tmp_json_for_multi_pay_order'],
         user,
         instance,
-    )
-    parse_multi.main()
-    instance.save()
+        )
+        parse_multi.main()
+    else:
+        parse_multi = MultiDocumentsPaymentParser(
+        serializer_data['tmp_json_for_multi_pay_order'],
+        user,
+        instance,
+        )
+        parse_multi.main()
+    # instance.save()
+
+
+@try_decorator_param(('KeyError',), return_value=False)
+def check_data_for_value(serializer_data: OrderedDict, value: str) -> bool:
+    return True if serializer_data[value] else False
 
 
 @try_decorator_param(('KeyError',))

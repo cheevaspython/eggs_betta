@@ -70,34 +70,45 @@ class ContragentBalanceForm(BaseBalanceAbstract):
     Реализует метод оплаты покупателем, учитывает оплату по форме 2.
     '''
     def add_money_amount_for_buyer_form(self, UPD: bool = False) -> None:
-        if UPD:
-            if isinstance(self.pay_client, BuyerCardEggs):
-                if self.current_deal.cash:
-                    if self.current_deal.cash:
-                        self.pay_client.balance_form_two -= self.money_amount
-                        self.pay_client.save()
-                    else:
-                        self.pay_client.balance_form_one -= self.money_amount
-                        self.pay_client.save()
-        else:
-            if isinstance(self.pay_client, BuyerCardEggs):
-                if self.current_deal.cash:
-                    if self.current_deal.cash:
-                        self.pay_client.balance_form_two += self.money_amount
-                        self.pay_client.save()
-                    else:
-                        self.pay_client.balance_form_one += self.money_amount
-                        self.pay_client.save()
+        ...
+        # if UPD:
+        #     if isinstance(self.pay_client, BuyerCardEggs):
+        #         if self.current_deal.cash:
+        #             if self.current_deal.cash:
+        #                 self.pay_client.balance_form_two -= self.money_amount
+        #                 print(self.pay_client.balance_form_two)
+        #                 self.pay_client.save()
+        #                 print(self.pay_client.balance_form_two)
+        #             else:
+        #                 self.pay_client.balance_form_one -= self.money_amount
+        #                 self.pay_client.save()
+        # else:
+        #     if isinstance(self.pay_client, BuyerCardEggs):
+        #         if self.current_deal.cash:
+        #             if self.current_deal.cash:
+        #                 self.pay_client.balance_form_two += self.money_amount
+        #                 self.pay_client.save()
+        #             else:
+        #                 self.pay_client.balance_form_one += self.money_amount
+        #                 self.pay_client.save()
 
-    def add_money_amount_to_logic(self):
+    def add_money_amount_to_logic(self, UPD: bool = False) -> None:
         '''
         Добавление в баланс логисту.
         '''
-        if self.current_deal.delivery_form_payment == 3:
-            self.pay_client.balance_form_two += self.money_amount
-            self.pay_client.save()
-        else:
-            self.pay_client.balance_form_one += self.money_amount
-            self.pay_client.save()
+        # if UPD:
+        #     if self.current_deal.delivery_form_payment == 3:
+        #         self.pay_client.balance_form_two -= self.money_amount
+        #         self.pay_client.save()
+        #     else:
+        #         self.pay_client.balance_form_one -= self.money_amount
+        #         self.pay_client.save()
+        # else:
+        #     if self.current_deal.delivery_form_payment == 3:
+        #         self.pay_client.balance_form_two += self.money_amount
+        #         self.pay_client.save()
+        #     else:
+        #         self.pay_client.balance_form_one += self.money_amount
+        #         self.pay_client.save()
 
 

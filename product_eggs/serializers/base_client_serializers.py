@@ -50,5 +50,5 @@ class LogicCardEggsDetailSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'inn', 'contact_person', 'phone', 'email', 'comment', 
             'requisites', 'current_requisites', 'documents_contract', 'general_manager',
-            'balance_form_one', 'balance_form_one', 'balance', 'current_contract',
+            'balance_form_one', 'balance_form_one', 'balance', 'current_contract', 
         ]

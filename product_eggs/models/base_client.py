@@ -39,6 +39,11 @@ class BuyerCardEggs(AbstractClientCard, AbstractWarehouseCard):
         verbose_name='Менеджер',
         on_delete=models.SET_NULL, null=True
     )
+    guest = models.ForeignKey(
+        CustomUser, related_name='guest_manager_buyer',
+        verbose_name='Гость-Менеджер',
+        on_delete=models.SET_NULL, null=True
+    )
     balance = models.FloatField(
         default=0, null=True,
         verbose_name='Баланс',
@@ -108,6 +113,11 @@ class SellerCardEggs(AbstractClientCard, AbstractAddressCard):
         null=True, blank=True, default=0,
         verbose_name='Баланс по форме 2', 
     )
+    guest = models.ForeignKey(
+        CustomUser, related_name='guest_manager_seller',
+        verbose_name='Гость-Менеджер',
+        on_delete=models.SET_NULL, null=True
+    )
 
     def save(self, *args, **kwargs):
         if self.tails:
@@ -127,8 +137,8 @@ class LogicCardEggs(LogicCard):
 
     class Meta:
         db_table = 'LogicCardEggs'
-        verbose_name = 'Логист'
-        verbose_name_plural = 'Логист'
+        verbose_name = 'Перевозчик'
+        verbose_name_plural = 'Перевозчики'
         ordering = ['pk']
 
     requisites = models.OneToOneField(
@@ -151,6 +161,16 @@ class LogicCardEggs(LogicCard):
         DocumentsContractEggsModel, on_delete=models.PROTECT, 
         verbose_name='Документы (Договора)', null=True,
     )
+    guest = models.ForeignKey(
+        CustomUser, related_name='guest_manager_logic',
+        verbose_name='Гость-Менеджер',
+        on_delete=models.SET_NULL, null=True
+    )
+    tails = models.OneToOneField(
+        TailsContragentModelEggs, on_delete=models.PROTECT, 
+        null=True, blank=True, 
+        verbose_name='Депозит',
+    )
     def save(self, *args, **kwargs):
         self.balance = (self.balance_form_one + 
             self.balance_form_two)
@@ -158,4 +178,4 @@ class LogicCardEggs(LogicCard):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'Логист {self.name}'
+        return f'Перевозчик {self.name}'

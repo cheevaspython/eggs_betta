@@ -1,8 +1,11 @@
+import logging
 from functools import wraps
 from typing import Any
 
 from django.utils.datastructures import MultiValueDictKeyError
 
+
+logger = logging.getLogger(__name__)
 
 EXCEPTION_BOOK = {
     'KeyError': KeyError,
@@ -21,11 +24,11 @@ def try_decorator_param(exceptions: tuple, return_value: Any = None):
                 try:
                     return func(*args, **kwargs)
                 except tuple(errors) as e:
-                    print('decorator', e, func.__name__)                                             #TODO loging
+                    logging.info('decorator', e, func.__name__)                                             
                     if return_value:
                         return return_value
             else:
-                print('wrong exception str in decorator')
+                logging.warning('decorator.py wrong exception')
         return wrapper
     return try_decorator
 

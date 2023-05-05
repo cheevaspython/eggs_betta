@@ -2,7 +2,8 @@ from datetime import date, datetime, timedelta
 from collections import OrderedDict
 
 from product_eggs.services.decorators import try_decorator_param
-from product_eggs.services.raw.balance import get_queryset_deals_debt_by_client, get_queryset_deals_debt_by_client_logic
+from product_eggs.services.raw.balance import get_queryset_deals_debt_by_client,\
+    get_queryset_deals_debt_by_client_logic
 
             
 def add_marker_to_deal_return_data(
@@ -21,7 +22,8 @@ def add_marker_to_deal_return_data(
 
 
 def convert_serializer_data_to_list_of_dicts(
-        serializer_data: OrderedDict, seller=False, logic=False) -> list[dict]:
+        serializer_data: OrderedDict,
+        seller=False, logic=False) -> list[dict]:
     """
     Convert OrderedDict to list[dict] and add fields.
     """

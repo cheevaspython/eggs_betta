@@ -1,5 +1,7 @@
 from typing import Iterable
 
+from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
+    ApplicationFromSellerBaseEggs
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, \
     SellerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
@@ -17,6 +19,8 @@ class MessagesCreator():
         self._buyer = None
         self._logic = None
         self._base_deal = None
+        self._app_seller = None
+        self._app_buyer = None
         self.user = None
         self.idetify_model()
         self.identify_user()
@@ -33,6 +37,10 @@ class MessagesCreator():
             self._logic = self.data.model
         elif isinstance(self.data.model, BaseDealEggsModel):
             self._base_deal = self.data.model
+        elif isinstance(self.data.model, ApplicationFromSellerBaseEggs):
+            self._app_seller = self.data.model
+        elif isinstance(self.data.model, ApplicationFromBuyerBaseEggs):
+            self._app_buyer = self.data.model
 
     def identify_user(self):
         """
@@ -47,7 +55,6 @@ class MessagesCreator():
         """
         Create new model MessageToUserEggs.  
         """
-        print(self.user)
         if isinstance(self.user, Iterable):
             for user in self.user:
                 self.new_model = CreatorNewModel(
@@ -58,5 +65,7 @@ class MessagesCreator():
                     current_seller = self._seller,
                     current_buyer = self._buyer,
                     current_logic = self._logic,
+                    current_app_seller = self._app_seller,
+                    current_app_buyer = self._app_buyer,
                 )
                 self.new_model.create()

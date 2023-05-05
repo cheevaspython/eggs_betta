@@ -55,14 +55,10 @@ class ValidationMassEggs():
                     raise serializers.ValidationError(
                         f'Указанное количество: {quantity}дес. - не кратно коробке: {self.ONE_BOX_STANDART}дес.'
                     )
-                else:
-                    print('validation mass loging! all fine')
             else:
                 if quantity % self.ONE_BOX_cB:
                     raise serializers.ValidationError( 
                         f'Указанное количество: {quantity}дес. - не кратно коробке для высшей кат.: {self.ONE_BOX_cB}дес.'
                     )
-                else:
-                    print('validation mass loging! cB all fine')
 
 

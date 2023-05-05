@@ -72,6 +72,8 @@ def get_link_deal_docs(instance: DocumentsDealEggsModel, parce_str: str) -> str 
     match parce_str:
         case 'payment_order_incoming':    
             return str(instance.payment_order_incoming)    
+        case 'payment_order_outcoming_logic':
+            return str(instance.payment_order_outcoming_logic)
         case 'payment_order_outcoming':    
             return str(instance.payment_order_outcoming)    
         case 'specification_seller':    

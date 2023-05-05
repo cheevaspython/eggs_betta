@@ -106,8 +106,8 @@ class DealStatusChanger():
         #check superuser
         if self.user in can_edit_deal():
             return True
-
         message_user = self._get_message_and_user()
+
         try:
             if isinstance(message_user.owner, CustomUser):
                 return True if self.user == message_user.owner else False

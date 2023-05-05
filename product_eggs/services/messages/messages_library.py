@@ -2,6 +2,8 @@ from typing import Union
 
 from rest_framework import serializers
 
+from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
+    ApplicationFromSellerBaseEggs
 from product_eggs.services.data_class import BaseMessageForm
 from product_eggs.services.messages.create_messages import MessagesCreator
 from product_eggs.models.base_deal import BaseDealEggsModel
@@ -15,6 +17,9 @@ class MessageLibrarrySend():
     Messages book.  
     """
     action_client_book = ()
+    action_applications_book = (
+        'applications_actual',
+    )
     action_logic_book = (
         'message_50_50_payment',
         'message_100_payment',
@@ -41,7 +46,9 @@ class MessageLibrarrySend():
             action: str,
             model: Union[
                 BuyerCardEggs, SellerCardEggs,
-                LogicCardEggs, BaseDealEggsModel
+                LogicCardEggs, BaseDealEggsModel,
+                ApplicationFromBuyerBaseEggs,
+                ApplicationFromSellerBaseEggs,
             ],
             message: str | None = None,):
 
@@ -64,12 +71,14 @@ class MessageLibrarrySend():
             self.send_base_model_deal_book()
         elif self.action in self.action_general_book:
             self.send_general_book()
+        elif self.action in self.action_applications_book:
+            self.send_applications_book()
 
     def send_general_book(self):
         """
         Send message general book.
         """
-        if self.message:
+        if self.message and isinstance(self.model, BaseDealEggsModel):
             client_library = {
                 'message_to_finance_director': BaseMessageForm(
                     self.message,
@@ -85,6 +94,25 @@ class MessageLibrarrySend():
         Send message BuyerCardEggs, SellerCardEggs.
         """
 
+    def send_applications_book(self):
+        """
+        Send message BuyerCardEggs, SellerCardEggs.
+        """
+        if isinstance(self.model, 
+                ApplicationFromSellerBaseEggs | ApplicationFromBuyerBaseEggs):
+            applications_library_message = {
+                'applications_actual': BaseMessageForm(
+                    f'Проверьте актуальность заявки №{self.model.pk}.',
+                    self.model,
+                    self.model.owner,
+                    ),
+            }
+            if self.message:
+                pass
+            else:
+                message = MessagesCreator(applications_library_message[self.action])
+                message.create_message()
+
     def send_logic_book(self):
         """
         Send message LogicCardEggs.
@@ -92,13 +120,13 @@ class MessageLibrarrySend():
         if isinstance(self.model, BaseDealEggsModel):
             logic_library = {
                 'message_50_50_payment': BaseMessageForm(
-                    (f'По сделке №{self.model} загружен скан акт-упд перевозчика' +
+                    (f'По сделке №{self.model.documents.pk} загружен скан акт-упд перевозчика' +
                     f'Проверьте и оплатите 50%'),
                     self.model,
                     CustomUser.objects.filter(role=7)
                     ),
                 'message_100_payment': BaseMessageForm(
-                    (f'По сделке №{self.model} загружен скан акт-упд перевозчика' +
+                    (f'По сделке №{self.model.documents.pk} загружен скан акт-упд перевозчика' +
                     f'Проверьте и оплатите 100%'),
                     self.model,
                     CustomUser.objects.filter(role=7)
@@ -106,7 +134,7 @@ class MessageLibrarrySend():
             }
             logic_message_library = {
                 'message_advance_payment': BaseMessageForm(
-                    f'По сделке №{self.model} оплатите аванс в размере {self.message}',
+                    f'По сделке №{self.model.documents.pk} оплатите аванс в размере {self.message}',
                     self.model,
                     CustomUser.objects.filter(role=7)
                     ),

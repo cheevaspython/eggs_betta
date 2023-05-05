@@ -8,28 +8,37 @@ class AbstractApplication(models.Model):
         abstract = True
 
     delivery_window_from = models.DateField(
-        verbose_name='Окно поставки от', null=True, blank=True
+        verbose_name='Окно поставки от',
+        null=True, blank=True,
     )
     delivery_window_until = models.DateField(
-        verbose_name='Окно поставки до', null=True, blank=True
+        verbose_name='Окно поставки до',
+        null=True, blank=True,
     )
     created_date_time = models.DateTimeField(
-        auto_now_add=True, verbose_name='Создана'
+        auto_now_add=True, verbose_name='Создана',
     )
     edited_date_time = models.DateTimeField(
-        auto_now=True, verbose_name='Изменена'
+        auto_now=True, verbose_name='Изменена',
     )
     is_active = models.BooleanField(
-        editable=True, default=True, verbose_name='Активна'
+        editable=True, default=True,
+        verbose_name='Активна',
+    )
+    is_actual = models.BooleanField(
+        editable=True, default=True,
+        verbose_name='Актуальна',
     )
     owner = models.ForeignKey(
         CustomUser, verbose_name='Автор заявки',
-        on_delete=models.SET_NULL, null=True
+        on_delete=models.SET_NULL, null=True,
     )
     comment = models.CharField(
-        max_length=255, verbose_name='Комментарий', null=True, blank=True
+        max_length=255, verbose_name='Комментарий',
+        null=True, blank=True,
     )
     region = models.CharField(
-        max_length=50, verbose_name='Регион', null=True, blank=True
+        max_length=50, verbose_name='Регион',
+        null=True, blank=True,
     )
 

@@ -25,13 +25,15 @@ class LeftBarEggsViewSet(views.APIView):
         calcs_user_is_active = CalculateEggsSerializerSideBar(
             BaseDealEggsModel.objects.filter(
                 is_active=True, owner=self.request.user, status=1,
-            ).only('id', 'current_deal_our_debt', 'current_deal_buyer_debt'), many=True) 
+            ).only('id', 'deal_buyer_pay_amount', 'deal_our_pay_amount', 'logic_our_pay_amount'),
+            many=True) 
         confirmed_calcs_user_is_active = ConfirmedCalculateEggsSerializerSideBar(
             BaseDealEggsModel.objects.filter(
                 is_active=True, owner=self.request.user, status=2,
-            ).only('id', 'current_deal_our_debt', 'current_deal_buyer_debt'), many=True) 
+            ).only('id', 'deal_buyer_pay_amount', 'deal_our_pay_amount', 'logic_our_pay_amount'),
+            many=True) 
         deal_side_bar = DealEggsSerializerSideBar(
-            deal_is_active_where_doc_id_as_deal_id(), many=True)
+            deal_is_active_where_doc_id_as_deal_id(self.request.user.pk), many=True)
 
         return Response({
             'current_user_application_from_buyer_eggs': serializer_current_user_app_buyer_eggs.data, 

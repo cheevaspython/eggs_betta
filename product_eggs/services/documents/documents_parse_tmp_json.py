@@ -8,8 +8,6 @@ from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel, \
     DocumentsDealEggsModel
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
-from product_eggs.models.tails import TailsContragentModelEggs
-# from product_eggs.services.base_deal.deal_services import status_check
 from product_eggs.services.decorators import try_decorator_param
 from product_eggs.services.get_anything.try_to_get_models import get_client_for_inn, \
     try_to_get_deal_model_for_doc_deal_id
@@ -30,8 +28,8 @@ class DealDocumentsPaymentParser():
     def __init__(self, 
             payment_data: dict,
             user: CustomUser,
-            instance: DocumentsDealEggsModel,
-            ):
+            instance: DocumentsDealEggsModel):
+
         self.pay_data = payment_data
         self.user = user
         self.instance = instance
@@ -111,7 +109,7 @@ class MultiDocumentsPaymentParser():
         self.cash = cash
 
     @try_decorator_param(('TypeError',))
-    def convert_pay_multi_data(self) -> PayOrderDataForSaveMulti | None:
+    def convert_pay_multi_data(self):
         self.pay_order_multi = PayOrderDataForSaveMulti(**self._multi_pay_data) 
 
     def check_entry_data(self) -> bool:
@@ -183,7 +181,7 @@ class MultiDocumentsPaymentParser():
         self.get_documents_contract()
         self.send_message_to_finance_manager()
 
-    def tail_save(self) -> TailsContragentModelEggs | None:
+    def tail_save(self):
         from product_eggs.services.tails import tails_treatment
         if self.client:
             if isinstance(self.client, LogicCardEggs):
@@ -192,7 +190,7 @@ class MultiDocumentsPaymentParser():
                 if self.multi_pay_dict['tail_form_one'] or \
                         self.multi_pay_dict['tail_form_two']:
                     self.multi_pay_dict.pop('other_pays', None)
-                    return tails_treatment(self.multi_pay_dict, self.client)
+                    tails_treatment(self.multi_pay_dict, self.client)
     
     def update_multi_pay_doc_model_json(self):
         if self.doc_contract:
@@ -219,6 +217,7 @@ class MultiDocumentsPaymentParser():
         self.check_entry_data()
         self.get_documents_contract()
         self.splitter_multi_order()
+        self.tail_save()
         self.update_multi_pay_doc_model_json()
         self.update_data_num_doc_model_json()
 

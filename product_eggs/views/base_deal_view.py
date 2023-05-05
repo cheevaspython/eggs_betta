@@ -186,9 +186,9 @@ class BaseDealModelViewSet(viewsets.ViewSet):
         instance = BaseDealEggsModel.objects.get(pk=pk)  
         check_pre_status_for_create(instance, 2)
         #search_done_base_deal_messages_and_turn_off(instance) #TODO
-        serializer = BaseDealEggsSerializer(instance, data=request.data, partial=True) 
+        serializer = BaseDealEggsSerializer(
+            instance, data=request.data, partial=True) 
         serializer.is_valid(raise_exception=True)
-
         serializer.save()
 
         if instance.postponement_pay_for_us > 0:
@@ -202,7 +202,8 @@ class BaseDealModelViewSet(viewsets.ViewSet):
                 instance, eq_requestuser_is_customuser(self.request.user))
             deal.status_changer_main()
 
-        base_deal_logs_saver(instance, serializer.data)
+        instance = base_deal_logs_saver(instance, serializer.data)
+        instance.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])

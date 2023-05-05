@@ -50,6 +50,8 @@ class CustomCalculateSerializer(serializers.ModelSerializer):
             
             'cash', 'import_application', 
 
+            'logic_our_pay_amount',
+
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
@@ -90,7 +92,7 @@ class ConfirmedCalculateEggsSerializer(serializers.ModelSerializer):
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address',
 
-            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
+            'logic_our_debt_for_app_contract', 'logic_our_pay_amount',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
@@ -128,7 +130,7 @@ class CustomConfCalcEggsSerializer(serializers.ModelSerializer):
             'delivery_date_from_seller', 'delivery_date_to_buyer', 
             'loading_address', 'unloading_address',
 
-            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
+            'logic_our_debt_for_app_contract', 'logic_our_pay_amount',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
@@ -171,10 +173,11 @@ class BaseDealEggsSerializer(serializers.ModelSerializer):
             'loading_address', 'unloading_address', 
             'actual_loading_date', 'actual_unloading_date',
 
-            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
+            'logic_our_debt_for_app_contract', 'logic_our_pay_amount',
+            'logic_our_debt_UPD',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
-            'payback_day_for_us', 'payback_day_for_buyer', 'current_deal_our_debt', 
-            'current_deal_buyer_debt', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
+            'payback_day_for_us', 'payback_day_for_buyer', 'deal_our_pay_amount', 
+            'deal_buyer_pay_amount', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
 
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
@@ -214,11 +217,12 @@ class CustomBaseDealEggsSerializer(serializers.ModelSerializer):
             'loading_address', 'unloading_address', 
             'actual_loading_date', 'actual_unloading_date',
 
-            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
+            'logic_our_debt_for_app_contract', 'logic_our_pay_amount',
+            'logic_our_debt_UPD',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
             'payback_day_for_us', 'payback_day_for_buyer',  
             'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
-            'current_deal_buyer_debt', 'current_deal_our_debt',
+            'deal_buyer_pay_amount', 'deal_our_pay_amount',
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
             'seller_cB_cost', 'seller_c0_cost', 'seller_c1_cost',
@@ -255,10 +259,11 @@ class CompleteDealEggsModelSerializer(serializers.ModelSerializer):
             'loading_address', 'unloading_address', 
             'actual_loading_date', 'actual_unloading_date',
 
-            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
+            'logic_our_debt_for_app_contract', 'logic_our_pay_amount',
+            'logic_our_debt_UPD',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
-            'payback_day_for_us', 'payback_day_for_buyer', 'current_deal_our_debt', 
-            'current_deal_buyer_debt', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
+            'payback_day_for_us', 'payback_day_for_buyer', 'deal_our_pay_amount', 
+            'deal_buyer_pay_amount', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
             'seller_cB_cost', 'seller_c0_cost', 'seller_c1_cost',
@@ -299,10 +304,11 @@ class CustomBaseCompDealEggsSerializer(serializers.ModelSerializer):
             'loading_address', 'unloading_address', 
             'actual_loading_date', 'actual_unloading_date',
 
-            'logic_our_debt_for_app_contract', 'logic_our_debt_current',
+            'logic_our_debt_for_app_contract', 'logic_our_pay_amount',
+            'logic_our_debt_UPD',
             'postponement_pay_for_us', 'postponement_pay_for_buyer', 'margin',
-            'payback_day_for_us', 'payback_day_for_buyer', 'current_deal_our_debt', 
-            'current_deal_buyer_debt', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
+            'payback_day_for_us', 'payback_day_for_buyer', 'deal_our_pay_amount', 
+            'deal_buyer_pay_amount', 'deal_our_debt_UPD', 'deal_buyer_debt_UPD', 
 
             'cB', 'c0', 'c1', 'c2', 'c3', 'dirt',
             'seller_cB_cost', 'seller_c0_cost', 'seller_c1_cost',
@@ -320,10 +326,10 @@ class BaseDealBalanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseDealEggsModel
         fields = [
-            'id', 'current_deal_buyer_debt', 'documents', 'cash',
+            'id', 'deal_buyer_pay_amount', 'documents', 'cash', 'logic_our_debt_UPD',
             'deal_buyer_debt_UPD', 'payback_day_for_us', 'payback_day_for_buyer', 
-            'current_deal_our_debt', 'deal_our_debt_UPD', 'logic_our_debt_current',
-            'logic_our_debt_for_app_contract',
+            'deal_our_pay_amount', 'deal_our_debt_UPD', 'logic_our_pay_amount',
+            'logic_our_debt_for_app_contract', 'delivery_form_payment',
         ]
 
 

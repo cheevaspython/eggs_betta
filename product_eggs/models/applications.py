@@ -44,7 +44,8 @@ class ApplicationFromBuyerBaseEggs(AbstractApplicationEggs):
         ordering = ['pk']
 
     current_buyer = models.ForeignKey(
-        BuyerCardEggs, on_delete=models.PROTECT, verbose_name='Покупатель'
+        BuyerCardEggs, on_delete=models.PROTECT,
+        verbose_name='Покупатель',
     )
     cB_cost = models.FloatField(
         verbose_name='Стоимость за десяток', default=0,
@@ -65,13 +66,13 @@ class ApplicationFromBuyerBaseEggs(AbstractApplicationEggs):
         verbose_name='Стоимость за десяток', default=0,
     )
     unloading_address = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name='Адрес разгрузки',
+        max_length=255, blank=True,
+        null=True, verbose_name='Адрес разгрузки',
     )
     postponement_pay = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name='Отсрочка оплаты',
-        default=0,
+        null=True, blank=True,
+        verbose_name='Отсрочка оплаты', default=0,
     )
-
     def __str__(self):
         return f'Заявка покупателя №{self.pk}'
 
@@ -85,7 +86,8 @@ class ApplicationFromSellerBaseEggs(AbstractApplicationEggs):
         ordering = ['pk']
 
     current_seller = models.ForeignKey(
-        SellerCardEggs, on_delete=models.PROTECT, verbose_name='Продавец'
+        SellerCardEggs, on_delete=models.PROTECT,
+        verbose_name='Продавец'
     )
     cB_cost = models.FloatField(
         verbose_name='Стоимость за десяток', default=0,

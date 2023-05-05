@@ -32,3 +32,4 @@ class DocumentsContractEggsModel(DocumentsContragentModel):
     def __str__(self):
         return f'Документы по контрагенту {self.pk}'
 
+

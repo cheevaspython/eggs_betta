@@ -42,7 +42,7 @@ def check_pre_status_for_create(
             f'in model: {instance}, status: {status}, cant update model.')
 
 
-def get_additional_exp_detail(instance: BaseDealEggsModel) -> OrderedDict: #TODO
+def get_additional_exp_detail(instance: BaseDealEggsModel) -> OrderedDict: 
     """
     Возвращает детали дополнительного расхода по сделке.
     """
@@ -58,14 +58,10 @@ def status_check(instance: BaseDealEggsModel, status: int | tuple[int, int]) -> 
     if isinstance(status, int):
         if instance.status != status:
             raise serializers.ValidationError('Check status base_model')
-    # else:
-    #     for cur_status in status:
-    #         if instance.status != cur_status:
-    #             raise serializers.ValidationError('Check status base_model')
 
 
 def base_deal_logs_saver(
-        instance: BaseDealEggsModel, serializer_data: OrderedDict) -> None:
+        instance: BaseDealEggsModel, serializer_data: OrderedDict) -> BaseDealEggsModel:
     """
     Save data in create or change moment, model BaseDealEggsModel.
     """
@@ -73,12 +69,14 @@ def base_deal_logs_saver(
         case 1:
             instance.log_status_calc_query.update({**serializer_data})
             instance.save()
+            return instance
         case 2:
             instance.log_status_conf_calc_query.update({**serializer_data})
             instance.save()
+            return instance
         case 3:
             instance.log_status_deal_query.update({**serializer_data})
-            instance.save()
+            # instance.save() TODO
+            return instance
         case _:
-            pass
-     
+            return instance

@@ -1,4 +1,5 @@
 from os import environ
+from celery.schedule import crontab
 
 from pathlib import Path
 from datetime import timedelta
@@ -136,8 +137,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CELERY_BROKER_URL = 'redis://redis:6379'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = "redis://redis:6379"
+CELERY_IMPORTS = [
+    'product_eggs.tasks.beat_app_checker',
+]
+CELERY_TIMEZONE = 'Europe/Moscow'
+CELERY_ACCEPT_CONTENT = ['pickle', 'json']
+CELERY_BEAT_SCHEDULE = {
+   'applications_checker_at_11': {
+       'task': 'product_eggs.tasks.beat_app_checker.applications_actual_checker',
+       'schedule': crontab(hour=11, minute=00, day_of_week='mon,tue,wed,thu,fri'),
+   },
+} 
 
 LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'Europe/Moscow'

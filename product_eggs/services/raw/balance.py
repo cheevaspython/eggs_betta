@@ -77,15 +77,16 @@ def get_queryset_deals_debt_by_client(
     queryset = BaseDealEggsModel.objects.raw(
         f'''SELECT d.id, d.payback_day_for_buyer, d.payback_day_for_us,
                 d.documents_id, d."deal_our_debt_UPD", d."deal_buyer_debt_UPD",
-                d.cash, d.current_deal_our_debt, d.current_deal_buyer_debt, 
-                d.logic_our_debt_current, d.logic_our_debt_for_app_contract
+                d.cash, d.deal_buyer_pay_amount, d.deal_our_pay_amount, 
+                d.logic_our_pay_amount, d.logic_our_debt_for_app_contract,
+                d.delivery_form_payment, d."logic_our_debt_UPD"
             FROM "BaseDealModelEggs" AS d
             WHERE d.{client_model[0]}_id = '{current_client_inn}' 
-            AND d.current_deal_{client_model[1]}_debt > 0;'''
+            AND d.deal_{client_model[1]}_pay_amount > 0;'''
     )
     data_query = BaseDealBalanceSerializer(queryset, many=True)
     return add_marker_to_deal_return_data(data_query.data, client_model)
-        
+
 
 def get_queryset_deals_debt_by_client_logic(
         current_client_inn: str) -> ReturnDict:
@@ -95,11 +96,12 @@ def get_queryset_deals_debt_by_client_logic(
     queryset = BaseDealEggsModel.objects.raw(
         f'''SELECT d.id, d.payback_day_for_buyer, d.payback_day_for_us,
                 d.documents_id, d."deal_our_debt_UPD", d."deal_buyer_debt_UPD",
-                d.cash, d.current_deal_our_debt, d.current_deal_buyer_debt, 
-                d.logic_our_debt_current, d.logic_our_debt_for_app_contract
+                d.cash, d.deal_buyer_pay_amount, d.deal_our_pay_amount, 
+                d.logic_our_pay_amount, d.logic_our_debt_for_app_contract,
+                d.delivery_form_payment, d."logic_our_debt_UPD"
             FROM "BaseDealModelEggs" AS d
             WHERE d.current_logic_id = '{current_client_inn}' 
-            AND d.logic_our_debt_current > 0;'''
+            AND d.logic_our_pay_amount > 0 AND d.status > 2;'''
     )
     data_query = BaseDealBalanceSerializer(queryset, many=True)
     return data_query.data

@@ -43,6 +43,7 @@ class PayOrderDataForSave():
     deal: str
     doc_type: str
     documents_id: str 
+    force: bool = False
 
     def __post_init__(self):
         self.pay_quantity = float(self.pay_quantity)
@@ -92,7 +93,6 @@ class PayOrderDataForSaveMulti():
                 self.tail_form_one = float(self.tail_form_one)
             if self.tail_form_two:
                 self.tail_form_two = float(self.tail_form_two)
-
             if self.other_pays:
                 self.other_pays = [OtherPays(**other_pay) for other_pay in self.other_pays]
         except TypeError:

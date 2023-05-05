@@ -4,7 +4,10 @@ from typing import Union
 from django.db.models import QuerySet
 from rest_framework import serializers
 
-from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
+from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
+    ApplicationFromSellerBaseEggs
+from product_eggs.models.base_client import BuyerCardEggs, \
+    LogicCardEggs, SellerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
 from users.models import CustomUser
 
@@ -38,7 +41,9 @@ class BaseMessageForm():
     message: str
     model: Union[
         BuyerCardEggs, SellerCardEggs,
-        LogicCardEggs, BaseDealEggsModel
+        LogicCardEggs, BaseDealEggsModel,
+        ApplicationFromBuyerBaseEggs,
+        ApplicationFromSellerBaseEggs,
     ]
     user: CustomUser | QuerySet[CustomUser]
 

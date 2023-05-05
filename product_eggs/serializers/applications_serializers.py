@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from product_eggs.models.applications import ApplicationFromSellerBaseEggs, ApplicationFromBuyerBaseEggs
+from product_eggs.models.applications import ApplicationFromSellerBaseEggs, \
+    ApplicationFromBuyerBaseEggs
 from product_eggs.serializers.base_client_serializers import SellerCardEggsDetailSerializer, \
     BuyerCardEggsDetailSerializer 
 from users.serializers import CustomUserSerializer

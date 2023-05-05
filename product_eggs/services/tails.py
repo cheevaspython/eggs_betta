@@ -4,14 +4,15 @@ import uuid
 from django.db import transaction
 from rest_framework import serializers
 
-from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
+from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
 from product_eggs.models.tails import TailsContragentModelEggs
 from product_eggs.services.decorators import try_decorator_param
 from product_eggs.services.documents.documents_parse_tmp_json import MultiDocumentsPaymentParser
 from users.models import CustomUser
 
 
-def add_tail_model_to_client(client: BuyerCardEggs | SellerCardEggs) -> None:
+def add_tail_model_to_client(
+        client: BuyerCardEggs | SellerCardEggs | LogicCardEggs) -> None:
     """
     if client dont have related tail
     create new tail model and save 
@@ -27,7 +28,7 @@ def add_tail_model_to_client(client: BuyerCardEggs | SellerCardEggs) -> None:
 
 def tails_treatment(
         multy_pay_dict: dict,
-        client: BuyerCardEggs | SellerCardEggs) -> TailsContragentModelEggs:
+        client: BuyerCardEggs | SellerCardEggs):
     """
     add deposit in form
     add count tails
@@ -43,7 +44,7 @@ def tails_treatment(
             {str(uuid.uuid4()): multy_pay_dict})
         client.tails.tmp_json_for_multi_pay_order = {}
         client.tails.tmp_key_form_dict = {}
-        return client.tails
+        client.tails.save()
     else:
         client.tails.current_tail_form_two += multy_pay_dict['tail_form_two'] 
         client.tails.active_tails_form_two += 1
@@ -53,7 +54,6 @@ def tails_treatment(
         client.tails.tmp_json_for_multi_pay_order = {}
         client.tails.tmp_key_form_dict = {}
         client.tails.save()
-        return client.tails
 
 
 def subtract_tail_amount_and_actives(

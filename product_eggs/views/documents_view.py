@@ -35,7 +35,8 @@ class DocumentsViewSet(viewsets.ViewSet):
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def patch_deal_docs(self, request, pk=None) -> Response:
         instance = DocumentsDealEggsModel.objects.get(pk=pk)
-        serializer = DocumentsDealEggsSerializer(instance, data=request.data, partial=True) 
+        serializer = DocumentsDealEggsSerializer(
+            instance, data=request.data, partial=True) 
         serializer.is_valid(raise_exception=True)
 
         if isinstance(serializer.validated_data, OrderedDict):
@@ -53,11 +54,11 @@ class DocumentsViewSet(viewsets.ViewSet):
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def patch_docs_contract(self, request, pk=None) -> Response:
         instance = DocumentsContractEggsModel.objects.get(pk=pk)
-        serializer = DocumentsContractEggsSerializer(instance, data=request.data, partial=True) 
+        serializer = DocumentsContractEggsSerializer(
+            instance, data=request.data, partial=True) 
         serializer.is_valid(raise_exception=True)
 
         if isinstance(serializer.validated_data, OrderedDict):
-
             check_val_data_contract_for_multy_pay(
                 serializer.validated_data,
                 instance,
@@ -68,7 +69,5 @@ class DocumentsViewSet(viewsets.ViewSet):
                 instance
             )
         serializer.save()
-            # instance.tmp_json_for_multi_pay_order = {}   #TODO
-            # instance.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)    
