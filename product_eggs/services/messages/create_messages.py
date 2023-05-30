@@ -21,6 +21,8 @@ class MessagesCreator():
         self._base_deal = None
         self._app_seller = None
         self._app_buyer = None
+        self._info = message_form.info
+        self._done = message_form.done
         self.user = None
         self.idetify_model()
         self.identify_user()
@@ -67,5 +69,7 @@ class MessagesCreator():
                     current_logic = self._logic,
                     current_app_seller = self._app_seller,
                     current_app_buyer = self._app_buyer,
+                    info = self._info,
+                    done = self._done,
                 )
                 self.new_model.create()

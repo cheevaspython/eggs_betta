@@ -13,10 +13,10 @@ from product_eggs.permissions.calc_permissions import check_create_calculate_use
 from product_eggs.permissions.deal_permissions import check_create_deal_permission, \
     check_edit_deal_permission
 from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
-from product_eggs.serializers.base_deal_serializers import CompleteDealEggsModelSerializer, \
-    BaseDealEggsSerializer, CalculateEggsSerializer, ConfirmedCalculateEggsSerializer, \
-    CustomBaseCompDealEggsSerializer, \
-    CustomBaseDealEggsSerializer, CustomCalculateSerializer, CustomConfCalcEggsSerializer
+from product_eggs.serializers.base_deal_serializers import BaseCompDealEggsNameSerializer, \
+    BaseDealEggsNameSerializer, CalculateEggsNamesSerializer, CompleteDealEggsModelSerializer, \
+    BaseDealEggsSerializer, CalculateEggsSerializer, ConfirmedCalculateEggsNameSerializer, \
+    ConfirmedCalculateEggsSerializer
 from product_eggs.services.base_deal.conf_calc_service import check_calc_ready_for_true, \
     check_field_expence_create_new_model, check_fields_values_to_calc_ready, \
     check_validated_data_for_logic_conf
@@ -24,9 +24,6 @@ from product_eggs.services.base_deal.deal_status_change import DealStatusChanger
 from product_eggs.services.base_deal.deal_services import base_deal_logs_saver, \
     check_pre_status_for_create, create_relation_deal_status_and_deal_docs, status_check
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
-from product_eggs.services.raw.raw_query_base_deal import status_calc_list_query_is_active, \
-    status_comp_deal_list_query_is_active, status_conf_calc_list_query_is_active, \
-    status_deal_list_query_is_active
 from product_eggs.services.validation.check_validated_data import check_data_for_note
 from product_eggs.services.dates_check import validate_datas_for_positive
 from product_eggs.services.logic_hide_fields import get_return_edited_hide_data, \
@@ -76,8 +73,11 @@ class BaseDealModelViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def list_calculate(self, request, pk=None) -> Response:
-        serializer = CustomCalculateSerializer(
-            status_calc_list_query_is_active(), many=True) 
+        serializer = CalculateEggsNamesSerializer(
+            BaseDealEggsModel.objects.filter(
+                is_active=True, status=1).select_related(
+                    'seller', 'buyer', 'owner'), many=True
+            )
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    
@@ -104,8 +104,11 @@ class BaseDealModelViewSet(viewsets.ViewSet):
         serializer.save()
 
         #return list data for display
-        serializer = CustomCalculateSerializer(
-            status_calc_list_query_is_active(pk), many=True) 
+        serializer = CalculateEggsNamesSerializer(
+            BaseDealEggsModel.objects.filter(
+                is_active=True, status=1).select_related(
+                    'seller', 'buyer', 'owner'), many=True
+            )
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    
@@ -141,8 +144,12 @@ class BaseDealModelViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def list_confirmed_calculate(self, request, pk=None) -> Response:
-        serializer = CustomConfCalcEggsSerializer(
-            status_conf_calc_list_query_is_active(), many=True)  
+        serializer = ConfirmedCalculateEggsNameSerializer(
+            BaseDealEggsModel.objects.filter(
+                is_active=True, status=2).select_related(
+                    'seller', 'buyer', 'owner', 'additional_expense', 'current_logic'
+                ), many=True
+            )
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    
@@ -172,8 +179,12 @@ class BaseDealModelViewSet(viewsets.ViewSet):
                 message.send_message()
 
         #return list data for display
-        serializer = CustomConfCalcEggsSerializer(
-            status_conf_calc_list_query_is_active(pk), many=True) 
+        serializer = ConfirmedCalculateEggsNameSerializer(
+            BaseDealEggsModel.objects.filter(
+                is_active=True, status=2).select_related(
+                    'seller', 'buyer', 'owner', 'additional_expense', 'current_logic'
+                ),many=True
+            )
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    
@@ -208,8 +219,12 @@ class BaseDealModelViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def list_deal(self, request, pk=None) -> Response:  
-        serializer = CustomBaseDealEggsSerializer(
-            status_deal_list_query_is_active(), many=True)  
+        serializer = BaseDealEggsNameSerializer(
+            BaseDealEggsModel.objects.filter(
+                is_active=True, status=3).select_related(
+                    'seller', 'buyer', 'owner', 'additional_expense', 'current_logic', 'documents'
+                ), many=True
+            )
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    
@@ -238,8 +253,12 @@ class BaseDealModelViewSet(viewsets.ViewSet):
         change.status_changer_main()
 
         #return list data for display
-        serializer = CustomBaseDealEggsSerializer(
-            status_deal_list_query_is_active(pk), many=True) 
+        serializer = BaseDealEggsNameSerializer(
+            BaseDealEggsModel.objects.filter(
+                is_active=True, status=3).select_related(
+                    'seller', 'buyer', 'owner', 'additional_expense', 'current_logic', 'documents'
+                ), many=True
+            )
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    
@@ -250,17 +269,32 @@ class BaseDealModelViewSet(viewsets.ViewSet):
         instance = BaseDealEggsModel.objects.get(pk=pk)  
         match instance.status:
             case 1:
-                serializer = CustomCalculateSerializer(
-                    status_calc_list_query_is_active(pk), many=True) 
+                serializer = CalculateEggsNamesSerializer(
+                    BaseDealEggsModel.objects.filter(
+                        is_active=True, status=1).select_related(
+                            'seller', 'buyer', 'owner'), many=True
+                    )
             case 2:
-                serializer = CustomConfCalcEggsSerializer(
-                    status_conf_calc_list_query_is_active(pk), many=True) 
+                serializer = ConfirmedCalculateEggsNameSerializer(
+                    BaseDealEggsModel.objects.filter(
+                        is_active=True, status=2).select_related(
+                            'seller', 'buyer', 'owner', 'additional_expense', 'current_logic'
+                        ), many=True
+                    )
             case 3:
-                serializer = CustomBaseDealEggsSerializer(
-                    status_deal_list_query_is_active(pk), many=True) 
+                serializer = BaseDealEggsNameSerializer(
+                    BaseDealEggsModel.objects.filter(
+                        is_active=True, status=3).select_related(
+                            'seller', 'buyer', 'owner', 'additional_expense', 'current_logic', 'documents',
+                        ), many=True
+                    )
             case 4:
-                serializer = CustomBaseCompDealEggsSerializer(
-                    status_comp_deal_list_query_is_active(pk), many=True) 
+                serializer = BaseCompDealEggsNameSerializer(
+                    BaseDealEggsModel.objects.filter(
+                        is_active=True, status=4).select_related(
+                            'seller', 'buyer', 'owner', 'additional_expense', 'current_logic', 'documents',
+                        ), many=True
+                    )
             case _:
                 serializer = None
         if serializer:
@@ -274,8 +308,12 @@ class BaseDealModelViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def list_comp_deal(self, request, pk=None) -> Response:  
-        serializer = CustomBaseCompDealEggsSerializer(
-            status_comp_deal_list_query_is_active(pk), many=True) 
+        serializer = BaseCompDealEggsNameSerializer(
+            BaseDealEggsModel.objects.filter(
+                is_active=True, status=4).select_related(
+                    'seller', 'buyer', 'owner', 'additional_expense', 'current_logic', 'documents',
+                ), many=True
+            )
         if init_logic_user(request.user):
             return Response(get_return_edited_hide_data(serializer.data),
                 status=status.HTTP_200_OK)    

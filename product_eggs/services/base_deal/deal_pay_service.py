@@ -11,7 +11,6 @@ from product_eggs.services.base_deal.deal_pay_compare import compare_UPD_and_pay
 from product_eggs.services.statistic import BaseBalanceAbstract
 from product_eggs.services.data_class import PayOrderDataForSave
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -89,7 +88,8 @@ class DealPayOrderUPDservice():
                 self.application_contract_logic = self.data.pay_quantity #TODO mb off
                 self.deal.delivery_cost = self.data.pay_quantity
 
-            case 'payment_order_outcoming_logic' | 'payment_order_outcoming' | 'payment_order_incoming':
+            case 'payment_order_outcoming_logic' | 'payment_order_outcoming' | \
+                    'payment_order_incoming' | 'tail_payment':
                 if isinstance(self.pay_client, SellerCardEggs | BuyerCardEggs | LogicCardEggs):
                     self.deal = compare_payment_and_inital_amount(
                         self.deal,

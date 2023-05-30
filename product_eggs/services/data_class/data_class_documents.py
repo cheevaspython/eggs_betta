@@ -78,13 +78,13 @@ class PayOrderDataForSaveMulti():
     для общего платежного поручения. 
     """
     user: CustomUser
-    date: datetime
+    date: str
     number: str
     inn: str
     total_amount: str | float
     tail_form_one: str | float | None
     tail_form_two: str | float | None
-    other_pays: list | Optional[OtherPays]
+    other_pays: list | dict 
 
     def __post_init__(self):
         try:
@@ -94,9 +94,41 @@ class PayOrderDataForSaveMulti():
             if self.tail_form_two:
                 self.tail_form_two = float(self.tail_form_two)
             if self.other_pays:
-                self.other_pays = [OtherPays(**other_pay) for other_pay in self.other_pays]
+                if isinstance(self.other_pays, dict):
+                    self.other_pays = [OtherPays(**self.other_pays)]
+                else:
+                    self.other_pays = [OtherPays(**other_pay) for other_pay in self.other_pays]
         except TypeError:
-            raise serializers.ValidationError('wrong float data in tmp_multi')
+            raise serializers.ValidationError('PayOrderDataForSaveMulti: wrong float/other_pays')
 
     def __getitem__(self, item):
         return getattr(self, item)
+
+
+@dataclass
+class MultiTails():
+    cash: bool
+    other_pays: list
+    total_pay: float = 0
+    form_type: str | None = None 
+
+    def __post_init__(self):
+        try:
+            self.total_pay = sum([float(other['pay_quantity']) for other in self.other_pays])
+            self.other_pays = [OtherPays(**other_pay) for other_pay in self.other_pays]
+            self.form_type = 'form_two' if self.cash else 'form_one'
+
+        except TypeError:
+            raise serializers.ValidationError(
+                'wrong data in MultiTails dataclass')
+    
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+
+
+
+
+
+
+

@@ -8,6 +8,7 @@ from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel, \
     DocumentsDealEggsModel
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
+from product_eggs.models.tails import TailsContragentModelEggs
 from product_eggs.services.decorators import try_decorator_param
 from product_eggs.services.get_anything.try_to_get_models import get_client_for_inn, \
     try_to_get_deal_model_for_doc_deal_id
@@ -37,7 +38,7 @@ class DealDocumentsPaymentParser():
 
     def check_entry_data(self) -> bool:
         if isinstance(self.deal, BaseDealEggsModel): 
-            # status_check(self.deal, (3, 4,))
+            # status_check(self.deal, (3, 4,)) #TODO
             self.pay_client  = get_client_for_inn(self.pay_data['inn']) 
             if isinstance(self.pay_client, Union[SellerCardEggs, BuyerCardEggs, LogicCardEggs]):
                 self.client_documents_model = self.pay_client.documents_contract
@@ -100,13 +101,15 @@ class MultiDocumentsPaymentParser():
             multi_pay_data: dict,
             user: CustomUser,
             current_document_contract: DocumentsContractEggsModel | None,
-            cash: bool = True):
+            cur_tail: TailsContragentModelEggs | None = None,
+            cash: bool = False):
         self._multi_pay_data = multi_pay_data
         self.user = user
         self.doc_contract = current_document_contract
         self._multi_pay_data['user'] = self.user.pk
         self.save_data_for_update = list()
         self.cash = cash
+        self.cur_tail = cur_tail
 
     @try_decorator_param(('TypeError',))
     def convert_pay_multi_data(self):
@@ -183,14 +186,16 @@ class MultiDocumentsPaymentParser():
 
     def tail_save(self):
         from product_eggs.services.tails import tails_treatment
-        if self.client:
+        if self.cur_tail:
+            tails_treatment(self.multi_pay_dict, cur_tail=self.cur_tail)
+        elif self.client:
             if isinstance(self.client, LogicCardEggs):
                 pass
             else:
                 if self.multi_pay_dict['tail_form_one'] or \
                         self.multi_pay_dict['tail_form_two']:
                     self.multi_pay_dict.pop('other_pays', None)
-                    tails_treatment(self.multi_pay_dict, self.client)
+                    tails_treatment(self.multi_pay_dict, client=self.client)
     
     def update_multi_pay_doc_model_json(self):
         if self.doc_contract:

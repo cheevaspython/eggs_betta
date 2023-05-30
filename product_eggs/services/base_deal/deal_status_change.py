@@ -8,6 +8,7 @@ from product_eggs.services.decorators import try_decorator_param
 from product_eggs.services.messages.create_messages import MessagesCreator
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from product_eggs.services.messages.messages_services import \
+    change_fileld_done_to_true, find_messages_where_base_deal_and_not_done, \
     search_done_base_deal_messages_and_turn_off
 from users.models import CustomUser
 
@@ -36,9 +37,9 @@ class DealStatusChanger():
         5. if == 9 -> 
         """
         if self.instance.deal_status_ready_to_change:
-            if self.instance.deal_status <= 8:
+            if self.instance.deal_status <= 7:
                 return 'change'
-            elif self.instance.deal_status == 9:
+            elif self.instance.deal_status == 8:
                 return 'complete'
             else:
                 return 'pass'
@@ -63,10 +64,11 @@ class DealStatusChanger():
                     self._send_action()
                 else:
                     raise serializers.ValidationError(
-                        'You cant change status this deal, or deal status is 9')
+                        'You cant change status this deal, or deal status is 8')
             case 'complete':
                 self.instance.status += 1
-                search_done_base_deal_messages_and_turn_off(self.instance)
+                self.instance.deal_status += 1
+                search_done_base_deal_messages_and_turn_off(self.instance) #TODO
                 message = MessageLibrarrySend('deal_complete', self.instance)
                 message.send_message()
                 self.instance.save()
@@ -94,6 +96,8 @@ class DealStatusChanger():
         self.instance.deal_status += 1
         self.instance.deal_status_ready_to_change = False
         self.instance.save()
+        change_fileld_done_to_true(
+            find_messages_where_base_deal_and_not_done(self.instance.pk))
 
     def check_user_to_can_change(self) -> bool:
         """

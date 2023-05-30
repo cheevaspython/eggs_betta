@@ -9,8 +9,8 @@ from product_eggs.services.documents.docs_get_link import get_half_link_for_save
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from users.models import CustomUser
 
-
 logger = logging.getLogger(__name__)
+
 
 def deal_docs_dict_json_update(
         serializer_data: OrderedDict,

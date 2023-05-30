@@ -123,6 +123,7 @@ def compare_payment_and_inital_amount(
 
         payments_sub = inital_payments_amount - \
             abs(instance.__dict__[pay_dict[client.__class__.__name__]]) 
+
         delta = payments_sub - pay_amount
 
         if delta < 0:

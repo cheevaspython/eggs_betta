@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import OrderedDict, Union
 
 from django.db.models import QuerySet
+
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel, DocumentsDealEggsModel
 from product_eggs.services.decorators import try_decorator_param

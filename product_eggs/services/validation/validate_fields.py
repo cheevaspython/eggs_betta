@@ -2,8 +2,8 @@ from string import ascii_lowercase, ascii_uppercase
 from typing import OrderedDict
 
 from rest_framework import serializers
-from product_eggs.services.dates_check import validation_delivery_interval
 
+from product_eggs.services.dates_check import validation_delivery_interval
 from product_eggs.services.decorators import try_decorator_param
 
 

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Union
 
 from django.db.models import QuerySet
@@ -9,6 +10,7 @@ from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
 from product_eggs.models.base_client import BuyerCardEggs, \
     LogicCardEggs, SellerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
+from product_eggs.services.data_class.data_class_documents import OtherPays
 from users.models import CustomUser
 
 
@@ -46,6 +48,8 @@ class BaseMessageForm():
         ApplicationFromSellerBaseEggs,
     ]
     user: CustomUser | QuerySet[CustomUser]
+    info: bool = False
+    done: bool = False
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -67,9 +71,40 @@ class AdditionalExpenseData():
             self.expense = float(self.expense)
             self.owner_id = int(self.owner_id)
         except TypeError:
-            serializers.ValidationError(
+            raise serializers.ValidationError(
                 'wrong float expens or user id in tmp_json')
     
     def __getitem__(self, item):
         return getattr(self, item)
+
+
+@dataclass(slots=True)
+class TailTransactionData():
+
+    date: str | None
+    number: str
+    inn: str
+    total_amount: float 
+    tail_form_one: float | None 
+    tail_form_two: float | None
+    other_pays: OtherPays        
+
+    def __post_init__(self):
+        self.date = datetime.now().date().strftime('%d/%m/%Y')
+        try: 
+            float(self.total_amount)
+            isinstance(self.other_pays, OtherPays)
+        except [TypeError, ValueError]:
+            raise serializers.ValidationError('wrong type in TailTransactionData')
+    
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+
+
+
+
+
+
+
 

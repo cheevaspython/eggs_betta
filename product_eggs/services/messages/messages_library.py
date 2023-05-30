@@ -84,6 +84,7 @@ class MessageLibrarrySend():
                     self.message,
                     self.model,
                     CustomUser.objects.filter(role=6),
+                    info=True,
                     ),
             }
             message = MessagesCreator(client_library[self.action])
@@ -105,6 +106,7 @@ class MessageLibrarrySend():
                     f'Проверьте актуальность заявки №{self.model.pk}.',
                     self.model,
                     self.model.owner,
+                    info=True,
                     ),
             }
             if self.message:
@@ -154,6 +156,7 @@ class MessageLibrarrySend():
                         f'Сделка №{self.model.documents.pk} закрыта',
                         self.model,
                         CustomUser.objects.filter(role=6),
+                        info=True,
                         ),
                     'if_post_payment_to_seller': BaseMessageForm(
                         f'Сделка №{self.model.documents.pk} на постоплате, \
@@ -175,24 +178,27 @@ class MessageLibrarrySend():
                 'create_new_calc': BaseMessageForm(
                     f'Создан новый просчет №{self.model.pk}',
                     self.model,
-                    CustomUser.objects.filter(role=5)
+                    CustomUser.objects.filter(role=5),
+                    info=True,
                     ),
                 'calc_confirmed': BaseMessageForm(
                     f'Просчет №{self.model.pk} подтвержден',
                     self.model,
                     self.model.owner,
+                    info=True,
                     ),
                 'conf_calc_wait_logic': BaseMessageForm(
                     f'Подтвержденный просчет №{self.model.pk} создан \
                         и ожидает добавления перевозчика',
                     self.model,
-                    CustomUser.objects.filter(role=4)
+                    CustomUser.objects.filter(role=4),
                     ),
                 'logic_confirmed': BaseMessageForm(
                     f'Логист добавлен в подтвержденный просчет №{self.model.pk}, \
                         готов к отправке на подтверждение менеджеру направления',
                     self.model,
                     self.model.owner,
+                    info=True,
                     ),
                 'calc_ready': BaseMessageForm(
                     f'Одобрите подтвержденный просчет №{self.model.pk} \
@@ -207,6 +213,7 @@ class MessageLibrarrySend():
                     \n {self.message}',
                     self.model,
                     self.model.owner,
+                    info=True,
                     ),
                 'note_conf_calc': BaseMessageForm(
                     f'Замечание по подтвержденному просчету \
@@ -214,6 +221,7 @@ class MessageLibrarrySend():
                     \n {self.message}',
                     self.model,
                     self.model.owner,
+                    info=True,
                     ),
             }
             if self.message:

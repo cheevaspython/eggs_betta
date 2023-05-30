@@ -18,27 +18,27 @@ class MessageToUserEggs(MessageToUser):
         
 	current_base_deal = models.ForeignKey(
 		BaseDealEggsModel, verbose_name='base_deal',
-		on_delete=models.SET_NULL, null=True, blank=True
+		on_delete=models.SET_NULL, null=True, blank=True,
 	)
 	current_seller = models.ForeignKey(
 		SellerCardEggs, verbose_name='seller',
-		on_delete=models.SET_NULL, null=True, blank=True
+		on_delete=models.SET_NULL, null=True, blank=True,
 	)
 	current_buyer = models.ForeignKey(
 		BuyerCardEggs, verbose_name='buyer',
-		on_delete=models.SET_NULL, null=True, blank=True
+		on_delete=models.SET_NULL, null=True, blank=True,
 	)
 	current_logic = models.ForeignKey(
 		LogicCardEggs, verbose_name='logic',
-		on_delete=models.SET_NULL, null=True, blank=True
+		on_delete=models.SET_NULL, null=True, blank=True,
 	)
 	current_app_seller = models.ForeignKey(
 		ApplicationFromBuyerBaseEggs, verbose_name='app_seller',
-		on_delete=models.SET_NULL, null=True, blank=True
+		on_delete=models.SET_NULL, null=True, blank=True,
 	)
 	current_app_buyer = models.ForeignKey(
 		ApplicationFromSellerBaseEggs, verbose_name='app_buyer',
-		on_delete=models.SET_NULL, null=True, blank=True
+		on_delete=models.SET_NULL, null=True, blank=True,
 	)
 
 

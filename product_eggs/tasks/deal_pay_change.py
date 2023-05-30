@@ -3,7 +3,6 @@ from celery import shared_task
 
 from product_eggs.models.base_client import AbstractClientCard
 
-
 logger = logging.getLogger(__name__)
 
 

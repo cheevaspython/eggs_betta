@@ -5,7 +5,8 @@ from django.http import FileResponse
 from django.conf import settings
 from rest_framework import serializers
 
-from product_eggs.models.documents import DocumentsDealEggsModel, DocumentsContractEggsModel
+from product_eggs.models.documents import DocumentsDealEggsModel, \
+    DocumentsContractEggsModel
 
 
 def parce_pk_data(pk: str) -> list[str]:

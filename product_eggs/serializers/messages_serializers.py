@@ -9,8 +9,8 @@ class MessageToUserEggsSerializer(serializers.ModelSerializer):
         model = MessageToUserEggs
         fields = [
             'id', 'message_to', 'current_base_deal', 'message',
-            'not_read', 'created_date', 'current_seller', 
+            'not_read', 'current_seller', 
             'current_buyer', 'current_logic', 'current_app_seller',
-            'current_app_buyer',
+            'current_app_buyer', 'done', 'info',
         ]
 
