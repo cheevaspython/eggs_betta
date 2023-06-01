@@ -60,7 +60,7 @@ services:
       context: .
     hostname: flower
     entrypoint: celery
-    command: -A config.celery.app flower --loglevel=info --concurrency 1 -E
+    command: -A config.celery.app flower --loglevel=info 
     env_file: .env
     volumes:
       - .:/pilligrim

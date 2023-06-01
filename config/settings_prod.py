@@ -5,13 +5,9 @@ from os import environ
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 DEBUG = environ.get('DEBUG')
-
 ALLOWED_HOSTS = ['*'] 
-
 SECRET_KEY = environ.get('SECRET_KEY')
-
 AUTH_USER_MODEL = 'users.CustomUser'
 
 LOGIN_REDIRECT_URL = '/'
