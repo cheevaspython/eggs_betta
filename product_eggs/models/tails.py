@@ -1,7 +1,7 @@
 import logging
 
 from general_layout.tails.tail_client import TailsContragentModel
-from product_eggs.tasks.client_baalance_changer import change_client_balance_tail
+from product_eggs.tasks.client_balance_changer import change_client_balance_tail
 
 logger = logging.getLogger(__name__)
 

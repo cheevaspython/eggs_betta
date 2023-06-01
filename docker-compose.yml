@@ -17,7 +17,7 @@ services:
     hostname: redis
 
   database: 
-    container_name: postgres
+    container_name: postgres_test
     image: postgres:14.7-alpine
     restart: unless-stopped
     environment:

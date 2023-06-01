@@ -1,8 +1,7 @@
 from os import environ
-from celery.schedule import crontab
-
 from pathlib import Path
 from datetime import timedelta
+from celery.schedules import crontab
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,14 +76,9 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_postgres.core.PostgresChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-           'ENGINE': environ.get('POSTGRES_ENGINE'),
-           'NAME': environ.get('POSTGRES_DB'),
-           'USER': environ.get('POSTGRES_USER'),
-           'PASSWORD': environ.get('POSTGRES_PASSWORD'),
-           'HOST': environ.get('POSTGRES_HOST'),
-           'PORT': environ.get('POSTGRES_PORT'),
+            "hosts": [('redis://redis:6379/1')],
         },
     },
 }
@@ -112,14 +106,6 @@ DATABASES = {
        'PASSWORD': environ.get('POSTGRES_PASSWORD'),
        'HOST': environ.get('POSTGRES_HOST'),
        'PORT': environ.get('POSTGRES_PORT'),
-	'channels_postgres': {
-       'ENGINE': environ.get('POSTGRES_ENGINE'),
-       'NAME': environ.get('POSTGRES_DB'),
-       'USER': environ.get('POSTGRES_USER'),
-       'PASSWORD': environ.get('POSTGRES_PASSWORD'),
-       'HOST': environ.get('POSTGRES_HOST'),
-       'PORT': environ.get('POSTGRES_PORT'),
-	}
    }
 }
 
