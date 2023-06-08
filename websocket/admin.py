@@ -1,3 +1,11 @@
 from django.contrib import admin
 
-# Register your models here.
+from websocket.models import Room, Message, \
+    RoomSubscriber, SubscribeMessage
+
+admin.site.register(
+        [
+            Room, Message, RoomSubscriber, 
+            SubscribeMessage
+        ]
+)

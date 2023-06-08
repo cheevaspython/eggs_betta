@@ -2,6 +2,7 @@ import json
 import logging
 
 from django.contrib.auth import get_user_model
+from django.db.models import F, Q
 from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
 from djangochannelsrestframework.observer import model_observer
 from djangochannelsrestframework.decorators import action
@@ -12,9 +13,6 @@ from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
 from product_eggs.serializers.applications_serializers import ApplicationBuyerEggsSerializer, \
     ApplicationBuyerEggsSerializerSideBar, ApplicationSellerEggsSerializer, \
     ApplicationSellerEggsSerializerSideBar
-from product_eggs.services.raw.left_side_bar import app_buyer_is_active_owner, \
-    app_seller_is_active_owner, calc_is_active_where_doc_id_as_deal_id, \
-    conf_calc_is_active_where_doc_id_as_deal_id, deal_is_active_where_doc_id_as_deal_id
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.serializers.base_deal_serializers import BaseDealEggsSerializer, \
     CalculateEggsSerializer, CalculateEggsSerializerSideBar, ConfirmedCalculateEggsSerializer, \
@@ -132,27 +130,27 @@ class SideBarSubConsumer(GenericAsyncAPIConsumer):
             yield f'-owner__{instance.owner_id}'
 
     @seller_app_activity.groups_for_consumer
-    def seller_app_activity(self, school=None, classroom=None, **kwargs):
+    def seller_app_activity(self, **kwargs):
         if isinstance(kwargs['user'], CustomUser):
             yield f'-owner__{kwargs["user"].pk}'  
 
     @buyer_app_activity.groups_for_consumer
-    def buyer_app_activity(self, school=None, classroom=None, **kwargs):
+    def buyer_app_activity(self, **kwargs):
         if isinstance(kwargs['user'], CustomUser):
             yield f'-owner__{kwargs["user"].pk}'
 
     @calc_activity.groups_for_consumer
-    def calc_activity(self, school=None, classroom=None, **kwargs):
+    def calc_activity(self, **kwargs):
         if isinstance(kwargs['user'], CustomUser):
             yield f'-owner__{kwargs["user"].pk}'
 
     @conf_calc_activity.groups_for_consumer
-    def conf_calc_activity(self, school=None, classroom=None, **kwargs):
+    def conf_calc_activity(self, **kwargs):
         if isinstance(kwargs['user'], CustomUser):
             yield f'-owner__{kwargs["user"].pk}'
 
     @base_deal_activity.groups_for_consumer
-    def base_deal_activity(self, school=None, classroom=None, **kwargs):
+    def base_deal_activity(self, **kwargs):
         if isinstance(kwargs['user'], CustomUser):
             yield f'-owner__{kwargs["user"].pk}'
 
@@ -160,15 +158,37 @@ class SideBarSubConsumer(GenericAsyncAPIConsumer):
     def get_current_side_bar(self) -> dict | None:
         if self.auth and self.user:
             serializer_current_user_app_buyer_eggs = ApplicationBuyerEggsSerializerSideBar(
-                app_buyer_is_active_owner(self.user.pk), many=True)
+                ApplicationFromBuyerBaseEggs.objects.only(
+                    'id', 'owner_id', 'is_active', 
+                ).filter(Q(is_active=True) & Q(owner_id=self.user.pk)), many=True)
             serializer_current_user_app_selller_eggs = ApplicationSellerEggsSerializerSideBar(
-                app_seller_is_active_owner(self.user.pk), many=True)
+                ApplicationFromSellerBaseEggs.objects.only(
+                    'id', 'owner_id', 'is_active', 
+                ).filter(Q(is_active=True) & Q(owner_id=self.user.pk)), many=True)
             calcs_user_is_active = CalculateEggsSerializerSideBar(
-                calc_is_active_where_doc_id_as_deal_id(self.user.pk), many=True)
+                BaseDealEggsModel.objects.only(
+                    'id', 'documents_id', 'deal_our_pay_amount',
+                    'deal_buyer_pay_amount', 'logic_our_pay_amount',
+                    'is_active', 'status', 'owner_id'
+                ).filter(Q(status=1) & Q(is_active=True) & Q(owner_id=self.user.pk)),
+                many=True)
             confirmed_calcs_user_is_active = ConfirmedCalculateEggsSerializerSideBar(
-                conf_calc_is_active_where_doc_id_as_deal_id(self.user.pk), many=True)
+                BaseDealEggsModel.objects.only(
+                    'id', 'documents_id', 'deal_our_pay_amount',
+                    'deal_buyer_pay_amount', 'logic_our_pay_amount',
+                    'is_active', 'status', 'owner_id'
+                ).filter(Q(status=2) & Q(is_active=True) & Q(owner_id=self.user.pk)),
+                many=True)
             deal_side_bar = DealEggsSerializerSideBar(
-                deal_is_active_where_doc_id_as_deal_id(self.user.pk), many=True)
+                BaseDealEggsModel.objects.only(
+                    'id', 'documents_id', 'deal_our_pay_amount',
+                    'deal_buyer_pay_amount', 'logic_our_pay_amount',
+                    'is_active', 'status', 'owner_id'
+                ).filter(Q(status=3) & Q(is_active=True) & Q(owner_id=self.user.pk)).annotate(
+                    new_id=F('documents_id'),
+                    model_id=F('id')).values('new_id', 'model_id'
+                ).annotate(id=F('new_id')).values('id', 'model_id'),
+                many=True)
             resp_data = {
                 'current_user_application_from_buyer_eggs': serializer_current_user_app_buyer_eggs.data, 
                 'current_user_application_from_seller_eggs': serializer_current_user_app_selller_eggs.data,
