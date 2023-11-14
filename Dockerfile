@@ -1,7 +1,7 @@
 FROM python:3.11
 
-ARG ENV
-ENV ENV=${ENV} \
+ARG MY_ENV
+ENV MY_ENV=${MY_ENV} \
   PYTHONFAULTHANDLER=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONHASHSEED=random \
@@ -13,14 +13,15 @@ ENV ENV=${ENV} \
 RUN pip install "poetry==$POETRY_VERSION"
 WORKDIR /pilligrim
 COPY poetry.lock pyproject.toml /pilligrim/
+RUN poetry config installer.max-workers 10
 RUN poetry config virtualenvs.create false \
-  && poetry install $(test "$ENV" == production && echo "--no-dev") --no-interaction --no-ansi
+  && poetry install $(test "$MY_ENV" == production && echo "--no-dev") --no-interaction --no-ansi
 
 COPY . /pilligrim
-EXPOSE 8000
+RUN chmod -R 0777 /pilligrim
 
+EXPOSE 8008
 RUN adduser --disabled-password docker-admin
-
-USER docker-admin 
+USER docker-admin
 
 
