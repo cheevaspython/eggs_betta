@@ -5,7 +5,7 @@ services:
     container_name: backend_test
     build:
       context: .
-      dockerfile: Dockerfile.back
+      dockerfile: Dockerfile
     env_file: .env
     restart: always
     command: >
@@ -49,7 +49,6 @@ services:
     ports:
       - "8082:8328"
     volumes_from:
-      - front_test
       - backend_test
     volumes:
       - static:/static/
@@ -58,32 +57,14 @@ services:
       - app_network_test
     links:
       - backend_test
-      - front_test
     depends_on:
       - backend_test
-      - front_test
       - database_test
-
-  front_test:
-    container_name: front_test
-    build:
-      context: .
-      dockerfile: Dockerfile.front
-    expose:
-      - "3000"
-    env_file: .env
-    volumes:
-      - /front
-    depends_on:
-      - backend_test
-    networks:
-      - app_network_test
-    command: sh -c "npm run start"
 
   worker_test:
     build:
       context: .
-      dockerfile: Dockerfile.back
+      dockerfile: Dockerfile
     hostname: worker_test
     entrypoint: celery
     env_file: .env
@@ -100,7 +81,7 @@ services:
   beat_test:
     build:
       context: .
-      dockerfile: Dockerfile.back
+      dockerfile: Dockerfile
     hostname: worker_test
     entrypoint: celery
     env_file: .env
@@ -117,7 +98,7 @@ services:
   migration_test:
     build:
       context: .
-      dockerfile: Dockerfile.back
+      dockerfile: Dockerfile
     env_file: .env
     command: >
       sh -c "
