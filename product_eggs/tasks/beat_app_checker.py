@@ -1,63 +1,81 @@
-from datetime import datetime, date
+from datetime import datetime
+
 from typing import Iterator
+
+from django.utils import timezone
+
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
-from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
-    ApplicationFromSellerBaseEggs
+from product_eggs.models.applications import (
+    ApplicationFromBuyerBaseEggs, ApplicationFromSellerBaseEggs,
+)
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
-
 
 logger = get_task_logger(__name__)
 
 
 @shared_task
 def applications_actual_checker() -> None:
-    app_seller = ApplicationFromSellerBaseEggs.objects.\
-        filter(is_active=True).only('id', 'created_date_time',
-        'edited_date_time', 'owner_id').iterator() 
-    app_buyer = ApplicationFromBuyerBaseEggs.objects.\
-        filter(is_active=True).only('id', 'created_date_time',
-        'edited_date_time', 'owner_id').iterator() 
+    app_seller = ApplicationFromSellerBaseEggs.objects.filter(
+        is_active=True).only('id', 'created_date_time',
+        'edited_date_time', 'await_add_cost', 'owner_id').iterator()
+    app_buyer = ApplicationFromBuyerBaseEggs.objects.filter(
+        is_active=True).only('id', 'created_date_time',
+        'edited_date_time', 'await_add_cost', 'owner_id').iterator()
 
-    run_for_query(app_seller)
-    run_for_query(app_buyer)
+    run_data_checker_for_query(app_seller)
+    run_data_checker_for_query(app_buyer)
 
     logger.info('run beat task')
 
 
-def applications_actual_checker_test() -> None:
-    app_seller = ApplicationFromSellerBaseEggs.objects.\
-        filter(is_active=True).only('id', 'created_date_time',
-        'edited_date_time', 'owner_id').iterator() 
-    app_buyer = ApplicationFromBuyerBaseEggs.objects.\
-        filter(is_active=True).only('id', 'created_date_time',
-        'edited_date_time', 'owner_id').iterator() 
-
-    run_for_query(app_seller)
-    run_for_query(app_buyer)
-
-
-def check_delta_date_applications(app_date: date) -> bool:
-    delta = datetime.today().date() - app_date 
-    if delta.days > 3:
-        return True
-    else:
+def check_delta_date_applications(app_date: datetime) -> bool:
+    interval = timezone.now() - app_date
+    if interval.days < 4:
         return False
+    else:
+        return True
 
 
-def run_for_query(
-        iter_query: Iterator[ApplicationFromSellerBaseEggs] | \
-        Iterator[ApplicationFromBuyerBaseEggs]) -> None:
+def check_date_for_await_cost(app_date: datetime) -> bool:
+    interval = timezone.now() - app_date
+    if interval.days <= 0:
+        return False
+    else:
+        return True
+
+
+def run_data_checker_for_query(
+        iter_query: Iterator[ApplicationFromSellerBaseEggs] |
+        Iterator[ApplicationFromBuyerBaseEggs]
+    ) -> None:
 
     for app in iter_query:
-        if check_delta_date_applications(app.created_date_time.date()):
-            app.is_actual = False
-            app.save()
-            MessageLibrarrySend(
-                'applications_actual',
-                app,
-            )
+        if isinstance(app.await_add_cost, datetime):
+            if check_date_for_await_cost(app.await_add_cost):
+                app.is_actual = False
+                app.await_add_cost = None
+                app.save()
+                mess_model = MessageLibrarrySend(
+                    'applications_await_cost',
+                    app,
+                )
+                mess_model.send_message()
+        else:
+            if check_delta_date_applications(app.edited_date_time):
+                app.is_actual = False
+                app.save()
+                mess_model = MessageLibrarrySend(
+                    'applications_actual',
+                    app,
+                )
+                mess_model.send_message()
+
+
+
+
+
 
 
 

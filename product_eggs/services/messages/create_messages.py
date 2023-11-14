@@ -1,9 +1,11 @@
 from typing import Iterable
 
-from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
-    ApplicationFromSellerBaseEggs
-from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, \
-    SellerCardEggs
+from product_eggs.models.applications import (
+    ApplicationFromBuyerBaseEggs, ApplicationFromSellerBaseEggs
+)
+from product_eggs.models.base_client import (
+    BuyerCardEggs, LogicCardEggs, SellerCardEggs
+)
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.services.create_model import CreatorNewModel
 from product_eggs.services.data_class import BaseMessageForm
@@ -26,7 +28,7 @@ class MessagesCreator():
         self.user = None
         self.idetify_model()
         self.identify_user()
-        
+
     def idetify_model(self):
         """
         Add value idetify model.
@@ -55,7 +57,7 @@ class MessagesCreator():
 
     def create_message(self):
         """
-        Create new model MessageToUserEggs.  
+        Create new model MessageToUserEggs.
         """
         if isinstance(self.user, Iterable):
             for user in self.user:

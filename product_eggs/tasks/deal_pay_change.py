@@ -1,30 +1,55 @@
 import logging
+
 from celery import shared_task
 
-from product_eggs.models.base_client import AbstractClientCard
+from django.db.models import Model
+from django.core.exceptions import ObjectDoesNotExist
+
+from product_eggs.models.balance import BalanceBaseClientEggs
+from product_eggs.services.base_deal.margin import calculate_margin
 
 logger = logging.getLogger(__name__)
 
 
 @shared_task
-def change_client_balance_deal(client: AbstractClientCard,
+def change_client_balance(
+        cur_balance_model: BalanceBaseClientEggs,
         delta: float, cash: bool) -> None:
-    """                                             
+    """
     Task changed Client balance, then change
     deal balance.
     """
-    from product_eggs.models.base_client import \
-        SellerCardEggs, BuyerCardEggs, LogicCardEggs
-
-    if isinstance(client, SellerCardEggs):
-        client.balance_form_one += delta
-        client.save()
-    elif isinstance(client, BuyerCardEggs | LogicCardEggs):
-        if cash:
-            client.balance_form_two += delta
-            client.save()
-        else:
-            client.balance_form_one += delta
-            client.save()
+    if cash:
+        cur_balance_model.balance_form_two += delta
+        cur_balance_model.save()
     else:
-        logging.warning('task error (calc deal)')
+        cur_balance_model.balance_form_one += delta
+        cur_balance_model.save()
+
+
+@shared_task
+def task_calc_margin(cur_model: Model) -> float | None:
+    from product_eggs.models.base_deal import BaseDealEggsModel
+    from product_eggs.models.additional_expense import AdditionalExpenseEggs
+
+    if isinstance(cur_model, BaseDealEggsModel):
+        return calculate_margin(cur_model)
+
+    if isinstance(cur_model, AdditionalExpenseEggs):
+        try:
+            cur_deal = cur_model.base_deal_model
+            cur_deal.margin = calculate_margin(cur_deal)
+            cur_deal.save()
+        except ObjectDoesNotExist:
+            pass
+
+
+
+
+
+
+
+
+
+
+

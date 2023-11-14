@@ -1,5 +1,5 @@
 from django.db import models
- 
+
 
 class TailsContragentModel(models.Model):
 
@@ -7,34 +7,30 @@ class TailsContragentModel(models.Model):
         abstract = True
 
     current_tail_form_one = models.FloatField(
-        default=0, null=True, blank=True,
+        default=0,
         verbose_name='Депозит',
     )
     current_tail_form_two = models.FloatField(
-        default=0, null=True, blank=True,
+        default=0,
         verbose_name='Депозит нал',
     )
     active_tails_form_one = models.IntegerField(
-        default=0, null=True, blank=True,
+        default=0,
         verbose_name='active_tails_form_one',
     )
     active_tails_form_two = models.IntegerField(
-        default=0, null=True, blank=True,
+        default=0,
         verbose_name='active_tails_form_two',
     )
-    tail_dict_json = models.JSONField(
-        null=True, blank=True,
-        default=dict, verbose_name='tail_dict_json', 
+    data_number_json = models.JSONField(
+        blank=True,
+        default=dict, verbose_name='tail_dict_json',
     )
-    tail_dict_json_cash = models.JSONField(
-        null=True, blank=True,
-        default=dict, verbose_name='tail_dict_json_cash', 
+    data_number_json_cash = models.JSONField(
+        blank=True,
+        default=dict, verbose_name='tail_dict_json_cash',
     )
-    tmp_json_for_multi_pay_order = models.JSONField(
-        blank=True, null=True, 
-        default=dict, verbose_name='tmp_json_for_multy_pay_order',
-    )
-    tmp_key_form_dict = models.JSONField(
-        blank=True, null=True, 
-        default=dict, verbose_name='dict -> key: form'
+    multi_tails = models.JSONField(
+        blank=True,
+        default=dict, verbose_name='multi_tails',
     )

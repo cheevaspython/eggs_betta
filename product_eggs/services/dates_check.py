@@ -34,3 +34,12 @@ def validate_datas_for_positive(validate_data: OrderedDict) -> None:
     """
     validation_date_for_positive(validate_data['delivery_date_from_seller'])
     validation_date_for_positive(validate_data['delivery_date_to_buyer'])
+
+
+@try_decorator_param(('AttributeError','KeyError',))
+def validate_datas_for_positive_app(validate_data: OrderedDict) -> None:
+    """
+    Проверяет вводимые даты CalculateEggs модели на настоящие.
+    """
+    validation_date_for_positive(validate_data['delivery_window_from'])
+    validation_date_for_positive(validate_data['delivery_window_until'])

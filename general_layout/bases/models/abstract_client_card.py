@@ -3,40 +3,35 @@ from django.core import validators
 
 
 class AbstractClientCard(models.Model):
-    PAY_TYPE = ((1, 'С  НДС'), (2, 'Без НДС'), (3, 'Наличка'))
-    
+
     class Meta:
         abstract = True
 
-    name = models.CharField(
-        max_length=255, unique=True, verbose_name='Название', 
-    )
     inn = models.CharField(
-        max_length=12, verbose_name='ИНН',   
-        validators=[validators.MaxLengthValidator(12), validators.MinLengthValidator(10)],
+        max_length=12, verbose_name='ИНН',
+        validators=[
+            validators.MaxLengthValidator(12),
+            validators.MinLengthValidator(10)
+        ],
         primary_key=True,
     )
-    general_manager = models.CharField(
-        max_length=255, verbose_name='Генеральный директор', 
-    )
-    phone = models.CharField(
-        max_length=20, verbose_name='Номер телефона', unique=True,
-        validators=[validators.MaxLengthValidator(11)],
-    )
-    email = models.EmailField(
-        max_length=50, verbose_name='Почта', unique=True,
-    )
-    pay_type = models.PositiveSmallIntegerField(
-        verbose_name='Тип оплаты', choices=PAY_TYPE, null=True, blank=True,
-    )
     comment = models.CharField(
-        max_length=255, verbose_name='Дополнительная информация', null=True, blank=True,
+        max_length=255,
+        verbose_name='Дополнительная информация',
+        null=True, blank=True,
     )
-    contact_person = models.CharField(
-        max_length=255, null=True, blank=True, verbose_name='Контактное лицо',
+    resident = models.BooleanField(
+        blank=True, null=True,
+        editable=True, default=True,
+        verbose_name='Резидент',
     )
-    region = models.CharField(
-        max_length=100, verbose_name='Регион',
+    link = models.CharField(
+        max_length=255, verbose_name='Ссылка',
+        null=True, blank=True,
+    )
+    is_active = models.BooleanField(
+        editable=True, default=True,
+        verbose_name='Активна',
     )
 
     def __str__(self):
@@ -47,7 +42,7 @@ class AbstractAddressCard(models.Model):
 
     class Meta:
         abstract = True
-        
+
     prod_address_1 = models.CharField(
         max_length=254, verbose_name='Адрес производства',
     )
@@ -81,7 +76,7 @@ class AbstractAddressCard(models.Model):
 
 
 class AbstractWarehouseCard(models.Model):
-    
+
     class Meta:
         abstract = True
 

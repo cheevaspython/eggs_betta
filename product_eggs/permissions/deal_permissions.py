@@ -11,7 +11,11 @@ def check_create_deal_permission(user: CustomUser) -> None:
 
 
 def check_edit_deal_permission(user: CustomUser, instance: BaseDealEggsModel) -> None:
-    can_edit_users_book = [instance.seller, instance.buyer] + can_edit_deal()
+    can_edit_users_book = [
+        instance.seller.manager,
+        instance.buyer.manager,
+        instance.owner
+    ] + can_edit_deal()
     if user not in can_edit_users_book:
         raise serializers.ValidationError("У Вас нет прав для редактирования сделки")
 

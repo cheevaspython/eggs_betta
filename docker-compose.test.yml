@@ -1,0 +1,140 @@
+version: "3.9"
+
+services:
+  backend_test:
+    container_name: backend_test
+    build:
+      context: .
+      dockerfile: Dockerfile.back
+    env_file: .env
+    restart: always
+    command: >
+      sh -c "daphne -b 0.0.0.0 -p 8888 config.asgi:application"
+    depends_on:
+      database_test:
+        condition: service_started
+      migration_test:
+        condition: service_completed_successfully
+    networks:
+      - app_network_test
+    volumes:
+      - .:/pilligrim
+
+  redis_test:
+    image: redis:7.0.5-alpine
+    container_name: redis_test
+    hostname: redis
+    networks:
+      - app_network_test
+    env_file: .env
+    command: redis-server --port 6380
+    restart: always
+
+  database_test:
+    container_name: postgres_test
+    image: postgres:14.7-alpine
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - app_network_test
+    volumes:
+      - postgres_test:/var/lib/postgresql/data/
+
+  nginx_test:
+    container_name: nginx_test
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx.test
+    env_file: .env
+    ports:
+      - "8082:8328"
+    volumes_from:
+      - front_test
+      - backend_test
+    volumes:
+      - static:/static/
+    restart: always
+    networks:
+      - app_network_test
+    links:
+      - backend_test
+      - front_test
+    depends_on:
+      - backend_test
+      - front_test
+      - database_test
+
+  front_test:
+    container_name: front_test
+    build:
+      context: .
+      dockerfile: Dockerfile.front
+    expose:
+      - "3000"
+    env_file: .env
+    volumes:
+      - /front
+    depends_on:
+      - backend_test
+    networks:
+      - app_network_test
+    command: sh -c "npm run start"
+
+  worker_test:
+    build:
+      context: .
+      dockerfile: Dockerfile.back
+    hostname: worker_test
+    entrypoint: celery
+    env_file: .env
+    command: -A config.celery.app worker --loglevel=info --concurrency 1 -E
+    volumes_from:
+      - backend_test
+    networks:
+      - app_network_test
+    links:
+      - redis_test
+    depends_on:
+      - redis_test
+
+  beat_test:
+    build:
+      context: .
+      dockerfile: Dockerfile.back
+    hostname: worker_test
+    entrypoint: celery
+    env_file: .env
+    command: -A config.celery.app beat -l info
+    volumes_from:
+      - backend_test
+    networks:
+      - app_network_test
+    links:
+      - redis_test
+    depends_on:
+      - redis_test
+
+  migration_test:
+    build:
+      context: .
+      dockerfile: Dockerfile.back
+    env_file: .env
+    command: >
+      sh -c "
+            python manage.py makemigrations users websocket product_eggs &&
+            python manage.py migrate &&
+            python manage.py collectstatic --noinput
+            "
+    networks:
+      - app_network_test
+    volumes:
+      - .:/pilligrim
+    depends_on:
+      - database_test
+
+volumes:
+  postgres_test:
+  static:
+
+networks:
+  app_network_test:

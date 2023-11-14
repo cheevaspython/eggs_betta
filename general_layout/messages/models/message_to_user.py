@@ -8,18 +8,25 @@ class MessageToUser(models.Model):
 		abstract = True
 
 	message_to = models.ForeignKey(
-		CustomUser, related_name='notification_to',
-		on_delete=models.SET_NULL, null=True
+		  CustomUser, related_name='notification_to',
+		  on_delete=models.SET_NULL, null=True
 	)
 	message = models.TextField(null=False)
+
 	created_date = models.DateTimeField(
-		auto_now_add=True, verbose_name='Создана'
+		  auto_now_add=True, verbose_name='Создана'
 	)
 	is_active = models.BooleanField(
-		editable=True, default=True, verbose_name='is_active'
+		  editable=True, default=True, verbose_name='is_active'
 	)
 	not_read = models.BooleanField(
-		editable=True, default=True, verbose_name='not_read'
+		  editable=True, default=True, verbose_name='not_read'
+	)
+	done = models.BooleanField(
+		  editable=True, default=False, verbose_name='done'
+	)
+	info = models.BooleanField(
+		  editable=True, default=False, verbose_name='info'
 	)
 
 	def __str__(self):

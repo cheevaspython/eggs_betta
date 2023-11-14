@@ -1,7 +1,8 @@
 from rest_framework import routers
 
-from product_eggs.views.applications_view import ApplicationBuyerEggsViewSet, ApplicationSellerEggsViewSet
-
+from product_eggs.views.applications_view import (
+    ApplicationBuyerEggsViewSet, ApplicationSellerEggsViewSet
+)
 
 application_from_buyer_router = routers.SimpleRouter()
 application_from_buyer_router.register(r'', ApplicationBuyerEggsViewSet)

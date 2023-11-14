@@ -1,9 +1,12 @@
 import logging
+
 from functools import wraps
+
 from typing import Any
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import DataError
 from django.utils.datastructures import MultiValueDictKeyError
-
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +16,11 @@ EXCEPTION_BOOK = {
     'TypeError': TypeError,
     'MultiValueDictKeyError': MultiValueDictKeyError,
     'IndexError': IndexError,
+    'DataError': DataError,
+    'ValueError': ValueError,
+    'ObjectDoesNotExist': ObjectDoesNotExist,
 }
+
 
 def try_decorator_param(exceptions: tuple, return_value: Any = None):
     def try_decorator(func):
@@ -24,7 +31,7 @@ def try_decorator_param(exceptions: tuple, return_value: Any = None):
                 try:
                     return func(*args, **kwargs)
                 except tuple(errors) as e:
-                    logging.info('decorator', e, func.__name__)                                             
+                    logging.info('decorator', e, func.__name__)
                     if return_value:
                         return return_value
             else:

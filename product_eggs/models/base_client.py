@@ -1,11 +1,14 @@
-from django.db import models 
+from django.db import models
 
-from general_layout.bases.models import AbstractClientCard, \
-    AbstractAddressCard, LogicCard, AbstractWarehouseCard
+from general_layout.bases.models import (
+    AbstractClientCard, AbstractAddressCard,
+    LogicCard, AbstractWarehouseCard
+)
+from product_eggs.models.contact_person import ContactPersonEggs
+from product_eggs.models.entity import EntityEggs
 from product_eggs.models.requisites import RequisitesEggs
 from product_eggs.models.documents import DocumentsContractEggsModel
-from product_eggs.models.tails import TailsContragentModelEggs
-from product_eggs.services.tails_calc import calc_client_tail_debt
+from product_eggs.services.validation.validate_fields import validate_guest_role
 from users.models import CustomUser
 
 
@@ -15,24 +18,18 @@ class BuyerCardEggs(AbstractClientCard, AbstractWarehouseCard):
         db_table = 'BuyerCardEggs'
         verbose_name = 'Покупатель'
         verbose_name_plural = 'Покупатели'
-        ordering = ['pk']
-        
-    tails = models.OneToOneField(
-        TailsContragentModelEggs, on_delete=models.PROTECT, 
-        null=True, blank=True, 
-        verbose_name='Депозит',
+        ordering = ['inn']
+
+    region = models.CharField(
+        max_length=100, verbose_name='Регион',
     )
-    requisites = models.OneToOneField(
-        RequisitesEggs, on_delete=models.PROTECT, 
+    contact_person = models.ManyToManyField(
+        ContactPersonEggs, related_name="contact_person_buyer",
+        blank=True,
+    )
+    requisites = models.ForeignKey(
+        RequisitesEggs, on_delete=models.PROTECT,
         verbose_name='Реквизиты', null=True,
-    )
-    pay_limit = models.BigIntegerField(
-        null=True, blank=True, default=0,
-        verbose_name='Лимит задолженности',
-    )
-    pay_limit_cash = models.BigIntegerField(
-        null=True, blank=True, default=0,
-        verbose_name='Лимит задолженности, нал',
     )
     manager = models.ForeignKey(
         CustomUser, related_name='buyer_manager',
@@ -42,95 +39,72 @@ class BuyerCardEggs(AbstractClientCard, AbstractWarehouseCard):
     guest = models.ForeignKey(
         CustomUser, related_name='guest_manager_buyer',
         verbose_name='Гость-Менеджер',
-        on_delete=models.SET_NULL, null=True
-    )
-    balance = models.FloatField(
-        default=0, null=True,
-        verbose_name='Баланс',
-    )
-    balance_form_one = models.FloatField(
-        null=True, blank=True, default=0,
-        verbose_name='Баланс по форме 1', 
-    )
-    balance_form_two = models.FloatField(
-        null=True, blank=True, default=0,
-        verbose_name='Баланс по форме 2', 
+        on_delete=models.SET_NULL, null=True, blank=True,
+        validators=[validate_guest_role],
     )
     documents_contract = models.OneToOneField(
-        DocumentsContractEggsModel, 
-        on_delete=models.PROTECT, 
+        DocumentsContractEggsModel,
+        on_delete=models.PROTECT,
         verbose_name='Документы (Договора)', null=True
     )
-    def save(self, *args, **kwargs):
-        if self.tails:
-            self.balance = (self.balance_form_one + 
-                self.balance_form_two + calc_client_tail_debt(self.tails))
-        else:
-            self.balance = (self.balance_form_one + 
-                self.balance_form_two)
-
-        return super(BuyerCardEggs, self).save(*args, **kwargs)
+    entitys = models.ManyToManyField(
+        EntityEggs,
+        related_name="client_buyer",
+        blank=True,
+    )
 
     def __str__(self):
-        return f'Покупатель {self.name}'
-    
+        if self.requisites:
+            return f'Покупатель {self.requisites.name}'
+        else:
+            return f'Покупатель/{self.inn}'
+
 
 class SellerCardEggs(AbstractClientCard, AbstractAddressCard):
-    
+
     class Meta:
         db_table = 'SellerCardEggs'
         verbose_name = 'Продавец'
         verbose_name_plural = 'Продавцы'
-        ordering = ['pk']
+        ordering = ['inn']
 
-    requisites = models.OneToOneField(
-        RequisitesEggs, on_delete=models.PROTECT, 
+    region = models.CharField(
+        max_length=100, verbose_name='Регион',
+    )
+    requisites = models.ForeignKey(
+        RequisitesEggs, on_delete=models.PROTECT,
         verbose_name='Реквизиты', null=True,
     )
     documents_contract = models.OneToOneField(
-        DocumentsContractEggsModel, on_delete=models.PROTECT, 
+        DocumentsContractEggsModel, on_delete=models.PROTECT,
         verbose_name='Документы (Договора)', null=True,
     )
-    tails = models.OneToOneField(
-        TailsContragentModelEggs, on_delete=models.PROTECT, 
-        null=True, blank=True, 
-        verbose_name='Депозит', 
+    contact_person = models.ManyToManyField(
+        ContactPersonEggs, related_name="contact_person_seller",
+        blank=True,
     )
     manager = models.ForeignKey(
         CustomUser, related_name='seller_manager',
-        verbose_name='Менеджер', 
+        verbose_name='Менеджер',
         on_delete=models.SET_NULL, null=True,
-    )
-    balance = models.FloatField(
-        default=0, null=True,
-        verbose_name='Баланс',
-    )
-    balance_form_one = models.FloatField(
-        null=True, blank=True, default=0,
-        verbose_name='Баланс по форме 1', 
-    )
-    balance_form_two = models.FloatField(
-        null=True, blank=True, default=0,
-        verbose_name='Баланс по форме 2', 
     )
     guest = models.ForeignKey(
         CustomUser, related_name='guest_manager_seller',
         verbose_name='Гость-Менеджер',
-        on_delete=models.SET_NULL, null=True
+        on_delete=models.SET_NULL, null=True, blank=True,
+        validators=[validate_guest_role],
+    )
+    entitys = models.ManyToManyField(
+        EntityEggs,
+        related_name="client_seller",
+        blank=True,
     )
 
-    def save(self, *args, **kwargs):
-        if self.tails:
-            self.balance = (self.balance_form_one + 
-                self.balance_form_two + calc_client_tail_debt(self.tails))
-        else:
-            self.balance = (self.balance_form_one + 
-                self.balance_form_two)
-
-        return super().save(*args, **kwargs)
-
     def __str__(self):
-        return f'Продавец {self.name}'
+        if self.requisites:
+            return f'Продавец {self.requisites.name}'
+        else:
+            return f'Продавец/{self.inn}'
 
 
 class LogicCardEggs(LogicCard):
@@ -139,43 +113,41 @@ class LogicCardEggs(LogicCard):
         db_table = 'LogicCardEggs'
         verbose_name = 'Перевозчик'
         verbose_name_plural = 'Перевозчики'
-        ordering = ['pk']
+        ordering = ['inn']
 
-    requisites = models.OneToOneField(
-        RequisitesEggs, on_delete=models.PROTECT, 
+    region = models.CharField(
+        max_length=100, verbose_name='Регион',
+    )
+    requisites = models.ForeignKey(
+        RequisitesEggs, on_delete=models.PROTECT,
         verbose_name='Реквизиты', null=True, blank=True,
     )
-    balance = models.FloatField(
-        default=0, null=True,
-        verbose_name='Баланс',
-    )
-    balance_form_one = models.FloatField(
-        null=True, blank=True, default=0,
-        verbose_name='Баланс по форме 1', 
-    )
-    balance_form_two = models.FloatField(
-        null=True, blank=True, default=0,
-        verbose_name='Баланс по форме 2', 
-    )
     documents_contract = models.OneToOneField(
-        DocumentsContractEggsModel, on_delete=models.PROTECT, 
+        DocumentsContractEggsModel, on_delete=models.PROTECT,
         verbose_name='Документы (Договора)', null=True,
+    )
+    contact_person = models.ManyToManyField(
+        ContactPersonEggs, related_name="contact_person_logic",
+        blank=True,
     )
     guest = models.ForeignKey(
         CustomUser, related_name='guest_manager_logic',
         verbose_name='Гость-Менеджер',
         on_delete=models.SET_NULL, null=True
     )
-    tails = models.OneToOneField(
-        TailsContragentModelEggs, on_delete=models.PROTECT, 
-        null=True, blank=True, 
-        verbose_name='Депозит',
+    manager = models.ForeignKey(
+        CustomUser, related_name='logic_manager',
+        verbose_name='Менеджер',
+        on_delete=models.SET_NULL, null=True
     )
-    def save(self, *args, **kwargs):
-        self.balance = (self.balance_form_one + 
-            self.balance_form_two)
-
-        return super().save(*args, **kwargs)
+    entitys = models.ManyToManyField(
+        EntityEggs,
+        related_name="client_logic",
+        blank=True,
+    )
 
     def __str__(self):
-        return f'Перевозчик {self.name}'
+        if self.requisites:
+            return f'Перевозчик {self.requisites.name}'
+        else:
+            return f'Перевозчик/{self.inn}'

@@ -7,9 +7,21 @@ class ValidationMassEggs():
     """
     Валидирует суммарный вес продукции яиц к одной фуре.
     """
-    STANDART_CATEGORIES = ('c0', 'c1', 'c2', 'c3', 'dirt')
-    EGGS_CATEGORY_MASS_MEANING = {'cB':85, 'c0': 75, 'c1': 65, 'c2': 55, 'c3': 45, 'dirt': 65}
-    MAXIMUM_WEIGHT_ONE_TRUCK = 19656000                                                                          
+    STANDART_CATEGORIES = (
+        'c1_white', 'c1_cream', 'c1_brown',
+        'c2_white', 'c2_cream', 'c2_brown',
+        'c3_white', 'c3_cream', 'c3_brown',
+        'dirt'
+    )
+    EGGS_CATEGORY_MASS_MEANING = {
+        'cB_white':85, 'cB_cream':85, 'cB_brown':85,
+        'c0_white': 75, 'c0_cream': 75, 'c0_brown': 75,
+        'c1_white': 65, 'c1_cream': 65, 'c1_brown': 65,
+        'c2_white': 55, 'c2_cream': 55, 'c2_brown': 55,
+        'c3_white': 45, 'c3_cream': 45, 'c3_brown': 45,
+        'dirt': 65
+    }
+    MAXIMUM_WEIGHT_ONE_TRUCK = 19656000
     ONE_BOX_STANDART = 36
     ONE_BOX_cB = 30
 
@@ -30,24 +42,23 @@ class ValidationMassEggs():
         for egg in self.validated_data:
             if egg in self.EGGS_CATEGORY_MASS_MEANING.keys():
                 if self.validated_data[egg]:
-                    mass = self.validated_data[egg]*self.EGGS_CATEGORY_MASS_MEANING[egg]
+                    mass = self.validated_data[egg]*self.EGGS_CATEGORY_MASS_MEANING[egg]*10
                     self._mass_hash_map[egg] = mass
                     self._quantity_hash_map[egg] = self.validated_data[egg]
- 
+
     def check_for_maximum_mass_in_one_truck(self):
         """
         Сравнивает общую массу с допустимой.
         """
         if sum(self._mass_hash_map.values()) > self.MAXIMUM_WEIGHT_ONE_TRUCK:
-            current_mass = sum(self._mass_hash_map.values())
             raise serializers.ValidationError(
-                f'Суммарный вес продукции: {current_mass}, ' + 
+                f'Суммарный вес продукции: {sum(self._mass_hash_map.values())}, ' +
                 f'превышает допустимый для перевозки: {self.MAXIMUM_WEIGHT_ONE_TRUCK}'
             )
 
     def check_for_capacity_in_boxes(self):
         """
-        Проверяет количество кратности коробкам исходя из категории. 
+        Проверяет количество кратности коробкам исходя из категории.
         """
         for cat, quantity in self._quantity_hash_map.items():
             if cat in self.STANDART_CATEGORIES:
@@ -57,7 +68,7 @@ class ValidationMassEggs():
                     )
             else:
                 if quantity % self.ONE_BOX_cB:
-                    raise serializers.ValidationError( 
+                    raise serializers.ValidationError(
                         f'Указанное количество: {quantity}дес. - не кратно коробке для высшей кат.: {self.ONE_BOX_cB}дес.'
                     )
 

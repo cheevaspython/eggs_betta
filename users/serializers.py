@@ -12,3 +12,10 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 class CheckMasterPasswordSerializer(serializers.Serializer):
     entered_password = serializers.CharField()
+
+
+class CustomUserSerializerWs(serializers.ModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'role', 'first_name', 'last_name', ]

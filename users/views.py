@@ -13,14 +13,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class WhoamiApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get(self, request):
         response_dict = {
                 "user_id" : request.user.id,
                 "user_role": request.user.role,
                 "user_first_name": request.user.first_name,
                 "user_last_name": request.user.last_name
-                }
+        }
         return response.Response(response_dict)
 
     def post(self, request):

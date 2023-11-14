@@ -1,15 +1,17 @@
 from rest_framework import serializers
 
 from product_eggs.models.base_deal import BaseDealEggsModel
-from product_eggs.permissions.validate_user import can_edit_deal
-from product_eggs.services.data_class import BaseMessageForm, \
-    MessageUserForDealStatus
+from product_eggs.permissions.validate_user import can_edit_deal_super_user
+from product_eggs.services.data_class import (
+    BaseMessageForm, MessageUserForDealStatus
+)
 from product_eggs.services.decorators import try_decorator_param
 from product_eggs.services.messages.create_messages import MessagesCreator
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
-from product_eggs.services.messages.messages_services import \
-    change_fileld_done_to_true, find_messages_where_base_deal_and_not_done, \
+from product_eggs.services.messages.messages_services import (
+    change_fileld_done_to_true, find_messages_where_base_deal_and_not_done,
     search_done_base_deal_messages_and_turn_off
+)
 from users.models import CustomUser
 
 
@@ -17,29 +19,36 @@ class DealStatusChanger():
     """
     Check and change deal status.
     """
-    def __init__(self, 
+    def __init__(
+            self,
             instance: BaseDealEggsModel,
-            user: CustomUser):
+            user: CustomUser,
+        ):
 
         if instance.status != 3:
             raise serializers.ValidationError(
-                f'{self.instance} status !=3 !!!')
+                f'bas_deal_model status !=3 !!!'
+            )
         self.instance = instance
         self.user = user
 
     def _check_status_conditions(self) -> str:
         """
-        1. status_to_change 
-        2. (if true) -> 
+        1. status_to_change
+        2. (if true) ->
         3. (if status not 0 and 1 and < 9 )
         -> deal_status_owner_path (True)
         4. True + True -> check complete
-        5. if == 9 -> 
+        5. if == 9 ->
         """
         if self.instance.deal_status_ready_to_change:
-            if self.instance.deal_status <= 7:
+            if self.instance.deal_status == 0:
+                return 'new_deal'
+            elif self.instance.deal_status <= 8 and self.instance.deal_status_multi:
+                return 'half_action'
+            elif self.instance.deal_status <= 8:
                 return 'change'
-            elif self.instance.deal_status == 8:
+            elif self.instance.deal_status == 9:
                 return 'complete'
             else:
                 return 'pass'
@@ -49,30 +58,79 @@ class DealStatusChanger():
     def status_changer_main(self):
         '''
         main start
-        0. check user to can change 
-        (superuser can change if check_status_conditions - False) 
+        0. check user to can change
+        (superuser can change if check_status_conditions - False)
         1. check_status_conditions
         2. send message
         3. change status
         '''
         match self._check_status_conditions():
-            case 'pass':
-                pass
+            case 'new_deal':
+                self._change_deal_status()
+                self._send_action()
+            case 'half_action':
+                if self.check_user_to_can_change():
+                    self.instance.deal_status_multi = False
+                    self.instance.deal_status_ready_to_change = False
+                    self.instance.save()
+                else:
+                    raise serializers.ValidationError(
+                        'You cant change status this deal, or deal status is 9 or im stupid coder')
             case 'change':
                 if self.check_user_to_can_change():
                     self._change_deal_status()
                     self._send_action()
                 else:
                     raise serializers.ValidationError(
-                        'You cant change status this deal, or deal status is 8')
+                        'You cant change status this deal, or deal status is 9')
             case 'complete':
                 self.instance.status += 1
                 self.instance.deal_status += 1
                 search_done_base_deal_messages_and_turn_off(self.instance) #TODO
-                message = MessageLibrarrySend('deal_complete', self.instance)
-                message.send_message()
                 self.instance.save()
-            case _: pass
+                self.send_message_deal_complete()
+                self.change_applications_actual_and_send_message()
+            case 'pass':
+                pass
+            case _:
+                pass
+
+    def send_message_deal_complete(self):
+        """
+        send deal complete message to finance manager and applications managers if different
+        """
+        message_fin = MessageLibrarrySend('deal_complete', self.instance)
+        message_fin.send_message()
+        message_seller_manager = MessageLibrarrySend(
+            'deal_complete', self.instance, user_from=self.instance.application_from_seller.owner,
+        )
+        message_seller_manager.send_message()
+        if self.instance.application_from_buyer.owner != self.instance.application_from_seller.owner:
+            message_buyer_manager = MessageLibrarrySend(
+                'deal_complete', self.instance, user_from=self.instance.application_from_buyer.owner,
+            )
+            message_buyer_manager.send_message()
+
+    def change_applications_actual_and_send_message(self):
+        """
+        change action in applications -> to False, send message managers
+        """
+        self.instance.application_from_buyer.is_actual = False
+        self.instance.application_from_seller.is_actual = False
+        self.instance.application_from_buyer.save()
+        self.instance.application_from_seller.save()
+        owner_buyer_message = MessageLibrarrySend(
+            'applications_actual',
+            self.instance.application_from_buyer,
+            user_from=self.instance.application_from_buyer.owner,
+        )
+        owner_seller_message = MessageLibrarrySend(
+            'applications_actual',
+            self.instance.application_from_seller,
+            user_from=self.instance.application_from_seller.owner,
+        )
+        owner_buyer_message.send_message()
+        owner_seller_message.send_message()
 
     def _send_action(self):
         """
@@ -80,13 +138,26 @@ class DealStatusChanger():
         to next position
         """
         message_user = self._get_message_and_user()
-        action = MessagesCreator(
-            BaseMessageForm(
-                message_user.message,
-                self.instance,
-                message_user.owner)
-        )
-        action.create_message()
+        if isinstance(message_user, tuple) and self.instance.documents.edo_seller_documents:
+            self.instance.deal_status_multi = True
+            for cur_action in message_user:
+                action = MessagesCreator(
+                    BaseMessageForm(
+                        cur_action.message,
+                        self.instance,
+                        cur_action.owner)
+                )
+                action.create_message()
+        elif isinstance(message_user, MessageUserForDealStatus):
+            action = MessagesCreator(
+                BaseMessageForm(
+                    message_user.message,
+                    self.instance,
+                    message_user.owner)
+            )
+            action.create_message()
+        else:
+            raise serializers.ValidationError('wrong return data in _send_action deal changer')
 
     def _change_deal_status(self):
         """
@@ -99,74 +170,153 @@ class DealStatusChanger():
         change_fileld_done_to_true(
             find_messages_where_base_deal_and_not_done(self.instance.pk))
 
-    def check_user_to_can_change(self) -> bool:
+    def check_user_to_can_change(self) -> bool | None:
         """
-        Compare entry user and action user | users.role 
+        Compare entry user and action user | users.role
         in deal status library
         """
         #check status
-        if self.instance.deal_status > 8:
+        if self.instance.deal_status > 9:
             return False
         #check superuser
-        if self.user in can_edit_deal():
+        if self.user in can_edit_deal_super_user():
             return True
-        message_user = self._get_message_and_user()
 
-        try:
-            if isinstance(message_user.owner, CustomUser):
-                return True if self.user == message_user.owner else False
-            return True if self.user.role == message_user.owner[-1].role else False
-        except IndexError as e:
-            raise serializers.ValidationError(f'you havent some users role! {e}')
-    
+        message_user = self._get_message_and_user()
+        if isinstance(message_user, tuple):
+            try:
+                for cur_message_user in message_user:
+                    if isinstance(cur_message_user.owner, CustomUser):
+                        if self.user == cur_message_user.owner:
+                            return True
+                    else:
+                        if self.user in cur_message_user.owner:
+                            return True
+                return False
+            except IndexError as e:
+                raise serializers.ValidationError(f'you havent some users role! {e}')
+
+        elif isinstance(message_user, MessageUserForDealStatus):
+            try:
+                if isinstance(message_user.owner, CustomUser):
+                    return True if self.user == message_user.owner else False
+                else:
+                    return True if self.user in message_user.owner else False
+            except IndexError as e:
+                raise serializers.ValidationError(f'you havent some users role! {e}')
+
     @try_decorator_param(('AttributeError',))
-    def _get_message_and_user(self) -> MessageUserForDealStatus:
+    def _get_message_and_user(self) -> MessageUserForDealStatus | tuple[MessageUserForDealStatus]:
         """
         return action and current user | users for condition
         """
-        _messages_and_users_library = {
-            1: MessageUserForDealStatus(
-				f'Сделка №{self.instance.documents.pk} \
-				    ожидает подтверждения',
-				CustomUser.objects.filter(role=6)
-                ),
-            2: MessageUserForDealStatus(
-				f'Основание для платежа, по сделке \
-				    №{self.instance.documents.pk}.',   
-				self.instance.seller.manager
-				),
-            3: MessageUserForDealStatus(
-				f'Подтвердите оплату по сделке \
-				    №{self.instance.documents.pk}',
-				CustomUser.objects.filter(role=6)
-                ),
-            4: MessageUserForDealStatus(
-				f'Оплатите закупку по сделке \
-				    №{self.instance.documents.pk} и \
-				    загрузите подтверждение платежа',
-				CustomUser.objects.filter(role=7)
-				),
-			5: MessageUserForDealStatus(
-				f'Закупка по сделке №{self.instance.documents.pk} \
-				    оплачена, проконтролируйте погрузку, зафиксируйте \
-				    фактическую дату погрузки и загрузите УПД',   
-				self.instance.seller.manager
-				),
-            6: MessageUserForDealStatus(
-				f'По сделке №{self.instance.documents.pk} товар \
-				    в пути, ожидаем от вас запрос исходящей УПД',
-				self.instance.buyer.manager
-				),
-			7: MessageUserForDealStatus(
-				f'По сделке №{self.instance.documents.pk} \
-				    загрузите исходящую УПД',
-				CustomUser.objects.filter(role=7)
-				),
-			8: MessageUserForDealStatus(
-				f'Проконтролируйте разгрузку по сделке \
-				    №{self.instance.documents.pk}, зафиксируйте \
-				    фактическую дату разгрузки, загрузите подписанную УПД',
-				self.instance.buyer.manager
-				),
-        }
-        return _messages_and_users_library[self.instance.deal_status]
+        if self.instance.seller.manager and self.instance.buyer.manager:
+            try:
+                _messages_and_users_library = {
+                    1: MessageUserForDealStatus(
+                        f'Сделка №{self.instance.pk} ожидает подтверждения',
+                        CustomUser.objects.filter(role=6),
+                    ),
+                    2: MessageUserForDealStatus(
+                        f'Основание для платежа, по сделке №{self.instance.pk}.',
+                        self.instance.application_from_seller.owner,
+                    ),
+                    3: MessageUserForDealStatus(
+                        f'Подтвердите оплату по сделке №{self.instance.pk}',
+                        CustomUser.objects.filter(role=6),
+                    ),
+                    4: MessageUserForDealStatus(
+                        f'Оплатите закупку по сделке №{self.instance.pk} и \
+                        загрузите подтверждение платежа',
+                        CustomUser.objects.filter(role=7),
+                    ),
+                    5: MessageUserForDealStatus(
+                        f'Закупка по сделке №{self.instance.pk} \
+                        оплачена, проконтролируйте погрузку и загрузите УПД',
+                        self.instance.application_from_seller.owner,
+                    ),
+                    6: MessageUserForDealStatus(
+                        f'По сделке №{self.instance.pk} товар \
+                        в пути, ожидаем от вас запрос исходящей УПД',
+                        self.instance.application_from_buyer.owner,
+                    ),
+                    7: MessageUserForDealStatus(
+                        f'По сделке №{self.instance.pk} загрузите исходящую УПД',
+                        CustomUser.objects.filter(role=7),
+                    ),
+                    8: MessageUserForDealStatus(
+                        f'Проконтролируйте разгрузку по сделке \
+                        №{self.instance.pk} и загрузите подписанную УПД',
+                        self.instance.application_from_buyer.owner,
+                    ),
+                    9: MessageUserForDealStatus( #TODO double messaage, add to logic?
+                        f'По сделке №{self.instance.pk} произведена разгрузка и  \
+                        загружена исходящяя подписанная УПД, загрузите пп для перевозчика, \
+                        проверьте наличие всех необходимых для бухгалтерии сканов \
+                        документов и переведите сделку в статус "закрытой"',
+                        CustomUser.objects.filter(role=7),
+                    ),
+                }
+                _messages_and_users_library_edo = {
+                    1: MessageUserForDealStatus(
+                        f'Сделка №{self.instance.pk} ожидает подтверждения',
+                        CustomUser.objects.filter(role=6),
+                    ),
+                    2: MessageUserForDealStatus(
+                        f'Основание для платежа, по сделке №{self.instance.pk}.',
+                        self.instance.application_from_seller.owner,
+                    ),
+                    3: MessageUserForDealStatus(
+                        f'Подтвердите оплату по сделке №{self.instance.pk}',
+                        CustomUser.objects.filter(role=6),
+                    ),
+                    4: MessageUserForDealStatus(
+                        f'Оплатите закупку по сделке №{self.instance.pk} и \
+                        загрузите подтверждение платежа',
+                        CustomUser.objects.filter(role=7),
+                    ),
+                    5: (
+                        MessageUserForDealStatus(
+                            f'Закупка по сделке №{self.instance.pk} \
+                            оплачена, проконтролируйте погрузку',
+                            self.instance.application_from_seller.owner,
+                        ),
+                        MessageUserForDealStatus(
+                            f'По сделке №{self.instance.pk} \
+                            загрузите в систему данные по входящей УПД (ЭДО)',
+                            CustomUser.objects.filter(role=7),
+                        ),
+                    ),
+                    6: MessageUserForDealStatus(
+                        f'По сделке №{self.instance.pk} товар \
+                        в пути, ожидаем от вас запрос исходящей УПД',
+                        self.instance.application_from_buyer.owner,
+                    ),
+                    7: MessageUserForDealStatus(
+                        f'По сделке №{self.instance.pk}, \
+                        загрузите в систему данные по входящей УПД (ЭДО), \
+                        а также загрузите исходящую УПД',
+                        CustomUser.objects.filter(role=7),
+                    ),
+                    8: MessageUserForDealStatus(
+                        f'Проконтролируйте разгрузку по сделке №{self.instance.pk}.',
+                        self.instance.application_from_buyer.owner,
+                    ),
+                    9: MessageUserForDealStatus(
+                        f'По сделке №{self.instance.pk}, разгрузка произведена, \
+                        загрузите в систему данные по исходящей УПД (ЭДО), \
+                        загрузите пп для перевозчика, \
+                        проверьте наличие всех необходимых для бухгалтерии сканов \
+                        документов и переведите сделку в статус "закрытой"',
+                        CustomUser.objects.filter(role=7),
+                    ),
+                }
+                result = _messages_and_users_library[self.instance.deal_status]
+                if self.instance.documents.edo_seller_documents or self.instance.documents.edo_buyer_documents:
+                    result = _messages_and_users_library_edo[self.instance.deal_status]
+                return result
+
+            except Exception as e:
+                raise serializers.ValidationError(f'status = {self.instance.deal_status}, something wrong, error -> {e}')
+        else:
+            raise serializers.ValidationError(f'deal -> {self.instance.pk} errror in message model seller/buyer manager == None!')

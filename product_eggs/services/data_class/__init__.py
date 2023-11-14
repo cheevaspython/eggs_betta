@@ -1,8 +1,11 @@
-from product_eggs.services.data_class.data_class import ClientTailForm, \
-    MessageUserForDealStatus, BaseMessageForm, AdditionalExpenseData
-from product_eggs.services.data_class.data_class_documents import \
-    OtherPayTmpData, PayOrderDataForSave, OtherPays, PayOrderDataForSaveMulti
-
+from product_eggs.services.data_class.data_class import (
+    ClientTailForm, MessageUserForDealStatus, BaseMessageForm,
+    AdditionalExpenseData, CommentData,
+)
+from product_eggs.services.data_class.data_class_documents import (
+    OtherPayTmpData, PayOrderDataForSave,
+    OtherPays, PayOrderDataForSaveMulti, PayOrderDataForSaveMultiClear
+)
 
 __all__ = (
     'ClientTailForm',
@@ -13,4 +16,6 @@ __all__ = (
     'OtherPayTmpData',
     'PayOrderDataForSave',
     'PayOrderDataForSaveMulti',
+    'CommentData',
+    'PayOrderDataForSaveMultiClear'
 )

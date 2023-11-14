@@ -1,11 +1,11 @@
 from django.contrib import admin
 
-from websocket.models import Room, Message, \
-    RoomSubscriber, SubscribeMessage
+from websocket.models import CustomRoom, GeneralWsMessage, \
+    WsMessage, GeneralRoom
 
 admin.site.register(
         [
-            Room, Message, RoomSubscriber, 
-            SubscribeMessage
+            GeneralRoom, WsMessage,
+            CustomRoom, GeneralWsMessage,
         ]
 )

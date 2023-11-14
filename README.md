@@ -2,8 +2,7 @@
 
 ___
 ```
-docker-compose build
-docker-compose up
+docker-compose -f docker-compose.test.yml up -d --build
 ```
 ___
 

@@ -15,7 +15,7 @@ class MessageToUserEggsModelViewSet(viewsets.ModelViewSet):   #TODO mb del?
     )
     serializer_class = MessageToUserEggsSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
 
 class RequestUserMessage(views.APIView):
     permission_classes = [permissions.IsAuthenticated]

@@ -10,4 +10,4 @@ class RequisitesEggs(Requisites):
         ordering = ['pk']
 
     def __str__(self):
-        return 'Реквизиты'
+        return f'Реквизиты {self.inn}'

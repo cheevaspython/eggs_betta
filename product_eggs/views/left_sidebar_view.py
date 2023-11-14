@@ -7,7 +7,6 @@ from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, Appli
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.serializers.base_deal_serializers import CalculateEggsSerializerSideBar, \
     ConfirmedCalculateEggsSerializerSideBar, DealEggsSerializerSideBar
-from product_eggs.services.raw.left_side_bar import deal_is_active_where_doc_id_as_deal_id
 
 
 class LeftBarEggsViewSet(views.APIView):
@@ -26,17 +25,25 @@ class LeftBarEggsViewSet(views.APIView):
             BaseDealEggsModel.objects.filter(
                 is_active=True, owner=self.request.user, status=1,
             ).only('id', 'deal_buyer_pay_amount', 'deal_our_pay_amount', 'logic_our_pay_amount'),
-            many=True) 
+            many=True)
         confirmed_calcs_user_is_active = ConfirmedCalculateEggsSerializerSideBar(
             BaseDealEggsModel.objects.filter(
                 is_active=True, owner=self.request.user, status=2,
             ).only('id', 'deal_buyer_pay_amount', 'deal_our_pay_amount', 'logic_our_pay_amount'),
-            many=True) 
+            many=True)
         deal_side_bar = DealEggsSerializerSideBar(
-            deal_is_active_where_doc_id_as_deal_id(self.request.user.pk), many=True)
+                BaseDealEggsModel.objects.only(
+                    'id', 'documents_id', 'deal_our_pay_amount',
+                    'deal_buyer_pay_amount', 'logic_our_pay_amount',
+                    'is_active', 'status', 'owner_id'
+                ), #.filter(Q(status=3) & Q(is_active=True) & Q(owner_id=self.request.user.pk)).annotate(
+                #     new_id=F('documents_id'),
+                #     model_id=F('id')).values('new_id', 'model_id'
+                # ).annotate(id=F('new_id')).values('id', 'model_id'),
+                many=True)
 
         return Response({
-            'current_user_application_from_buyer_eggs': serializer_current_user_app_buyer_eggs.data, 
+            'current_user_application_from_buyer_eggs': serializer_current_user_app_buyer_eggs.data,
             'current_user_application_from_seller_eggs': serializer_current_user_app_selller_eggs.data,
             'current_user_calculate_eggs': calcs_user_is_active.data,
             'current_user_confirmed_calculate_eggs': confirmed_calcs_user_is_active.data,

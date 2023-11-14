@@ -1,190 +1,155 @@
-import logging
+from datetime import datetime
 import uuid
 
 from dataclasses import asdict
+
 from typing import OrderedDict
 
 from django.db import transaction
+
 from rest_framework import serializers
+from product_eggs.models.balance import BalanceBaseClientEggs
 
-from product_eggs.models.base_client import BuyerCardEggs, \
-    LogicCardEggs, SellerCardEggs
+from product_eggs.models.base_client import (
+    BuyerCardEggs, LogicCardEggs, SellerCardEggs
+)
+from product_eggs.models.documents import DocumentsDealEggsModel
 from product_eggs.models.tails import TailsContragentModelEggs
-from product_eggs.services.data_class.data_class import TailTransactionData
+from product_eggs.services.balance import get_cur_balance
+from product_eggs.services.data_class.data_class import (
+    TailDataForJsonSave
+)
+from product_eggs.services.data_class.data_class_documents import (
+    MultiTails, PayOrderDataForSave, PayOrderDataForSaveMulti, TailTransactionData
+)
 from product_eggs.services.decorators import try_decorator_param
-from product_eggs.services.documents.documents_parse_tmp_json import \
-    MultiDocumentsPaymentParser
-from users.models import CustomUser
+from product_eggs.services.documents.documents_parse_tmp_json import (
+    DealDocumentsPaymentParser,
+)
+from product_eggs.services.get_anything.try_to_get_models import (
+    check_client_type_and_model
+)
 
-logger = logging.getLogger(__name__)
 
-
-def add_tail_model_to_client(
-        client: BuyerCardEggs | SellerCardEggs | LogicCardEggs) -> None:
+def create_tail_model_to_balance() -> TailsContragentModelEggs:
     """
-    if client dont have related tail
-    create new tail model and save 
+    if balance dont have related tail
+    create new tail model and save
     """
-    if client.tails:
-        pass
-    else:
-        new_tail = TailsContragentModelEggs.objects.create()
-        new_tail.save()
-        client.tails = new_tail
-        client.save()
+    new_tail = TailsContragentModelEggs.objects.create()
+    new_tail.save()
+    return new_tail
 
 
-def tails_treatment(
-        multy_pay_dict: dict,
-        client: BuyerCardEggs | SellerCardEggs | None = None,
-        cur_tail: TailsContragentModelEggs | None = None):
+class TailsTreatment():
     """
-    add deposit in form
-    add count tails
-    save model
+    Add tail amount to cur tails client + add json.
     """
-    if cur_tail:
-        if multy_pay_dict['tail_form_one']:
-            cur_tail.current_tail_form_one += multy_pay_dict['tail_form_one'] 
+    def __init__(
+            self,
+            multi_pay: PayOrderDataForSaveMulti,
+            client: BuyerCardEggs | SellerCardEggs | LogicCardEggs,
+            general_uuid: str | None = None):
+        check_client_type_and_model(client, multi_pay.client_type)
+        self.client = client
+        self.tail_form_one = multi_pay.tail_form_one
+        self.tail_form_two = multi_pay.tail_form_two
+        self.user = multi_pay.user
+        self.date = multi_pay.date
+        self.number = multi_pay.number
+        self.entity = multi_pay.entity
+        if general_uuid:
+            self.general_uuid = general_uuid
+        else:
+            self.general_uuid = str(datetime.today())[:-7] + ' , ' + str(uuid.uuid4())
+
+    def create_data_for_tails_dict(self) -> TailDataForJsonSave:
+        save_data = TailDataForJsonSave(
+            user=self.user,
+            date=self.date,
+            number=self.number,
+            pay_quantity=self.pay_quantity,
+            entity=self.entity
+        )
+        return save_data
+
+    def add_dict_json(self):
+        cur_balance = get_cur_balance(self.entity, self.client)
+
+        if not cur_balance.tails:
+            cur_balance.tails = create_tail_model_to_balance()
+            cur_balance.save()
+
+        if self.tail_form_one:
+            cur_tail = cur_balance.tails
+            self.pay_quantity = float(self.tail_form_one)
+            cur_tail.current_tail_form_one += self.pay_quantity
             cur_tail.active_tails_form_one += 1
-            multy_pay_dict.pop('tail_form_two', None)
-            cur_tail.tail_dict_json.update( 
-                {str(uuid.uuid4()): multy_pay_dict})
+            cur_tail.data_number_json.update(
+                {self.general_uuid: asdict(self.create_data_for_tails_dict())})
             cur_tail.multi_tails = {}
             cur_tail.save()
-        elif multy_pay_dict['tail_form_two']:
-            cur_tail.current_tail_form_two += multy_pay_dict['tail_form_two'] 
+
+        elif self.tail_form_two:
+            cur_tail = cur_balance.tails
+            self.pay_quantity = float(self.tail_form_two)
+            cur_tail.current_tail_form_two += self.pay_quantity
             cur_tail.active_tails_form_two += 1
-            multy_pay_dict.pop('tail_form_one', None)
-            cur_tail.tail_dict_json_cash.update( 
-                {str(uuid.uuid4()): multy_pay_dict})
+            cur_tail.data_number_json_cash.update(
+                {self.general_uuid: asdict(self.create_data_for_tails_dict())})
             cur_tail.multi_tails = {}
             cur_tail.save()
+
         else:
-            cur_tail.save()
+            pass
 
-    elif client:
-        add_tail_model_to_client(client)
 
-        if multy_pay_dict['tail_form_one']:
-            client.tails.current_tail_form_one += multy_pay_dict['tail_form_one'] 
-            client.tails.active_tails_form_one += 1
-            multy_pay_dict.pop('tail_form_two', None)
-            client.tails.tail_dict_json.update( 
-                {str(uuid.uuid4()): multy_pay_dict})
-            client.tails.multi_tails = {}
-            client.tails.save()
+def subtract_tail_edit_amount_and_actives(transaction_data: TailTransactionData) -> TailTransactionData:
+    """
+    """
+    if transaction_data.delta >= 0:
+        if transaction_data.pre_pay_data.cash:
+            transaction_data.tail.current_tail_form_two -= \
+                transaction_data.tail.data_number_json_cash[transaction_data.uuid]['pay_quantity']
+            transaction_data.tail.active_tails_form_two -= 1
+            if transaction_data.delta:
+                transaction_data.pre_pay_data.pay_quantity = \
+                    transaction_data.tail.data_number_json_cash[transaction_data.uuid]['pay_quantity']
+            del transaction_data.tail.data_number_json_cash[transaction_data.uuid]
+            return transaction_data
         else:
-            client.tails.current_tail_form_two += multy_pay_dict['tail_form_two'] 
-            client.tails.active_tails_form_two += 1
-            multy_pay_dict.pop('tail_form_one', None)
-            client.tails.tail_dict_json_cash.update( 
-                {str(uuid.uuid4()): multy_pay_dict})
-            client.tails.multi_tails = {}
-            client.tails.save()
-
-
-def subtract_tail_edit_amount_and_actives(
-        instance: TailsContragentModelEggs,
-        ulid,
-        delta: float) -> TailsContragentModelEggs | None:
-    "edit ulid dict, not del"
-
-    try:
-        if instance.tail_dict_json[ulid]:
-            instance.current_tail_form_one -= delta
-            new_form_one = instance.tail_dict_json[ulid]['tail_form_one'] - delta
-            instance.tail_dict_json[ulid]['tail_form_one'] = new_form_one
-            return instance
-    except KeyError as e:
-        logging.debug('error sub tail edit', e)
-        pass
-
-    try:
-        if instance.tail_dict_json_cash[ulid]:
-            instance.current_tail_form_two -= delta
-            new_form_one = instance.tail_dict_json_cash[ulid]['tail_form_two'] - delta
-            instance.tail_dict_json_cash[ulid]['tail_form_two'] = new_form_one
-            return instance
-    except KeyError as e:
-        logging.debug('error sub tail edit', e)
-        pass
-
-
-def subtract_tail_amount_and_actives(
-        instance: TailsContragentModelEggs,
-        ulid,) -> TailsContragentModelEggs | None:
-    """
-    Subtract dict and active.
-    """
-    try:
-        if instance.tail_dict_json[ulid]:
-            instance.active_tails_form_one -= 1
-            instance.current_tail_form_one -= \
-                instance.tail_dict_json[ulid]['tail_form_one']
-            instance.tail_dict_json.pop(ulid, None)
-            return instance
-
-    except KeyError as e:
-        logging.debug('error sub tail', e)
-        pass
-
-    try:
-        if instance.tail_dict_json_cash[ulid]:
-            instance.active_tails_form_two -= 1
-            instance.current_tail_form_two -= \
-                instance.tail_dict_json[ulid]['tail_form_one']
-            instance.tail_dict_json_cash.pop(ulid, None)
-            return instance
-
-    except KeyError as e:
-        logging.debug('error sub tail', e)
-        pass
+            transaction_data.tail.current_tail_form_one -= \
+                transaction_data.tail.data_number_json[transaction_data.uuid]['pay_quantity']
+            transaction_data.tail.active_tails_form_one -= 1
+            if transaction_data.delta:
+                transaction_data.pre_pay_data.pay_quantity = \
+                    transaction_data.tail.data_number_json[transaction_data.uuid]['pay_quantity']
+            del transaction_data.tail.data_number_json[transaction_data.uuid]
+            return transaction_data
+    else:
+        if transaction_data.pre_pay_data.cash:
+            transaction_data.tail.current_tail_form_two -= float(transaction_data.pre_pay_data.pay_quantity)
+            transaction_data.tail.data_number_json_cash[transaction_data.uuid]['pay_quantity'] = abs(transaction_data.delta)
+            return transaction_data
+        else:
+            transaction_data.tail.current_tail_form_one -= float(transaction_data.pre_pay_data.pay_quantity)
+            transaction_data.tail.data_number_json[transaction_data.uuid]['pay_quantity'] = abs(transaction_data.delta)
+            return transaction_data
 
 
 @transaction.atomic
-def transaction_tails_data(
-        transaction_data: TailTransactionData,
-        user: CustomUser,
-        instance: TailsContragentModelEggs,
-        ulid: dict,
-        cash: bool = False,
-        delta: float | None = None,
-        mini_sub: bool = False) -> None:
+def transaction_tails_data(transaction_data: TailTransactionData) -> TailsContragentModelEggs:
     """
     Tail data transtaction.
     """
-    if mini_sub and delta:
-        edit_inst = subtract_tail_edit_amount_and_actives(
-            instance, ulid, delta
-        )
-    else:
-        edit_inst = subtract_tail_amount_and_actives(instance, ulid)
-
-    parse_tail = MultiDocumentsPaymentParser(
-        asdict(transaction_data),
-        user,
-        current_document_contract=None,
-        cur_tail=edit_inst,
-        cash=cash,
+    edit_data = subtract_tail_edit_amount_and_actives(transaction_data)
+    parse_tail = DealDocumentsPaymentParser(
+        edit_data.pre_pay_data,
+        edit_data.user,
+        DocumentsDealEggsModel.objects.get(pk=edit_data.doc_deal_pk),
     )
-    parse_tail.main()
-
-
-def wrong_entry_tail_data(validated_data: OrderedDict) -> None:
-    """
-    Check val_data tails for wrong data.
-    Raise error if find.
-    """
-    wrong_fields = [
-        'current_tail_form_one', 'current_tail_form_two',
-        'active_tails_form_one', 'active_tails_form_two',
-        'tail_dict_json', 'tail_dict_json_cash',
-    ]
-    for field in validated_data.values():
-        if field in wrong_fields:
-            raise serializers.ValidationError(
-                'Wrong entry data for pay_tails, only tmp_json')
+    parse_tail.main_default()
+    return transaction_data.tail
 
 
 @try_decorator_param(('KeyError',))
@@ -192,5 +157,58 @@ def check_validated_tails_data_for_fields(validated_data: OrderedDict) -> bool:
     if validated_data['tmp_json_for_multi_pay_order'] and \
             validated_data['tmp_key_form_dict']:
         return True
-    else: 
+    else:
         return False
+
+
+def verificate_total_tail_amount_and_pay_quantity(
+        instance: TailsContragentModelEggs, multitails: MultiTails) -> None:
+    try:
+        if multitails.cash:
+            if multitails.total_pay > instance.current_tail_form_two:
+                raise serializers.ValidationError('pay_quantity sum in OtherPays > tail sum client cash')
+        else:
+            if multitails.total_pay > instance.current_tail_form_one:
+                raise serializers.ValidationError('pay_quantity sum in OtherPays > tail sum client')
+    except KeyError as e:
+        raise serializers.ValidationError('wrong tail instance', e)
+
+
+def tail_return_to_balance_and_del_old(
+        data_num_json: PayOrderDataForSave,
+        cur_balance: BalanceBaseClientEggs,
+        cash: bool) -> None:
+
+    save_data = TailDataForJsonSave(
+        user=data_num_json.user,
+        date=data_num_json.date,
+        number=data_num_json.number,
+        pay_quantity=data_num_json.pay_quantity,
+        entity=data_num_json.entity,
+    )
+    general_uuid = str(datetime.today())[:-7] + ' , ' + str(uuid.uuid4())
+
+    if cur_tail := cur_balance.tails:
+        if cash:
+            cur_tail.current_tail_form_two += data_num_json.pay_quantity
+            cur_tail.active_tails_form_two += 1
+            # del cur_tail.data_number_json_cash[json_key]
+            cur_tail.data_number_json_cash.update(
+                {general_uuid: asdict(save_data)})
+            cur_tail.multi_tails = {}
+            cur_tail.save()
+        else:
+            cur_tail = cur_balance.tails
+            cur_tail.current_tail_form_one += data_num_json.pay_quantity
+            cur_tail.active_tails_form_one += 1
+            # del cur_tail.data_number_json_cash[json_key]
+            cur_tail.data_number_json.update(
+                {general_uuid: asdict(save_data)})
+            cur_tail.multi_tails = {}
+            cur_tail.save()
+
+
+
+
+
+

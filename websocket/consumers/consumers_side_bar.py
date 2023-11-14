@@ -1,47 +1,42 @@
-import json
 import logging
 
-from django.contrib.auth import get_user_model
 from django.db.models import F, Q
-from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
+
 from djangochannelsrestframework.observer import model_observer
 from djangochannelsrestframework.decorators import action
+
 from channels.db import database_sync_to_async
 
-from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
-    ApplicationFromSellerBaseEggs
-from product_eggs.serializers.applications_serializers import ApplicationBuyerEggsSerializer, \
-    ApplicationBuyerEggsSerializerSideBar, ApplicationSellerEggsSerializer, \
-    ApplicationSellerEggsSerializerSideBar
+from product_eggs.models.applications import (
+    ApplicationFromBuyerBaseEggs, ApplicationFromSellerBaseEggs
+)
+from product_eggs.serializers.applications_serializers import (
+    ApplicationBuyerEggsSerializerSideBar,
+    ApplicationBuyerEggsSerializerSideBarObserver,
+    ApplicationSellerEggsSerializerSideBar,
+    ApplicationSellerEggsSerializerSideBarObserver
+)
 from product_eggs.models.base_deal import BaseDealEggsModel
-from product_eggs.serializers.base_deal_serializers import BaseDealEggsSerializer, \
-    CalculateEggsSerializer, CalculateEggsSerializerSideBar, ConfirmedCalculateEggsSerializer, \
-    ConfirmedCalculateEggsSerializerSideBar, DealEggsSerializerSideBar
-from users.serializers import CustomUserSerializer 
+from product_eggs.serializers.base_deal_serializers import (
+    CalculateEggsSerializerSideBar,
+    CalculateEggsSerializerSideBarObserver,
+    ConfirmedCalculateEggsSerializerSideBar,
+    ConfirmedCalculateEggsSerializerSideBarObserver,
+    DealEggsSerializerSideBar,
+    DealEggsSerializerSideBarObserver
+)
+from users.serializers import CustomUserSerializer
 from users.models import CustomUser
-from websocket.middleware import get_model
 
-User = get_user_model()
+from websocket.consumers.consumers import CustomAPIConsumer
+from websocket.services.decorator import ws_auth
+
 logger = logging.getLogger(__name__)
 
 
-class SideBarSubConsumer(GenericAsyncAPIConsumer):
-    queryset = CustomUser.objects.all() 
+class SideBarSubConsumer(CustomAPIConsumer):
+    queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    auth = False
-    user = None
-
-    @action()
-    async def authorization(self, request_id: str, action: str, **kwargs):
-        if kwargs['token']:
-            try:
-                self.user = await get_model(kwargs['token'])
-                if self.user:
-                    self.auth = True
-                    await self.reply(
-                        data={'authorization': True, 'user': self.user.pk}, action=action)
-            except AttributeError as e:
-                logger.info('wrong token in ws auth', e)
 
     @action()
     async def subscribe_to_side_bar_eggs(self, request_id: str, **kwargs):
@@ -57,57 +52,47 @@ class SideBarSubConsumer(GenericAsyncAPIConsumer):
             await self.base_deal_activity.subscribe(
                 request_id=request_id, user=self.user)
         else:
-            await super().close() 
+            await super().close()
 
-    @model_observer(ApplicationFromSellerBaseEggs, serializer_class=ApplicationSellerEggsSerializer)
+    @model_observer(ApplicationFromSellerBaseEggs, serializer_class=ApplicationSellerEggsSerializerSideBarObserver)
+    @ws_auth
     async def seller_app_activity(
             self, seller_app: str, action: str, subscribing_request_ids=[], **kwargs):
-        if self.auth:
-            for request_id in subscribing_request_ids:
-                await self.check_action(message=seller_app, action=action, request_id=request_id)
-        else:
-            await super().close() 
+        for request_id in subscribing_request_ids:
+            await self.check_action(message=seller_app, action=action, request_id=request_id)
 
-    @model_observer(ApplicationFromBuyerBaseEggs, serializer_class=ApplicationBuyerEggsSerializer)
+    @model_observer(ApplicationFromBuyerBaseEggs, serializer_class=ApplicationBuyerEggsSerializerSideBarObserver)
+    @ws_auth
     async def buyer_app_activity(
             self, buyer_app: str, action: str, subscribing_request_ids=[], **kwargs):
-        if self.auth:
-            for request_id in subscribing_request_ids:
-                await self.check_action(message=buyer_app, action=action, request_id=request_id)
-        else:
-            await super().close() 
+        for request_id in subscribing_request_ids:
+            await self.check_action(message=buyer_app, action=action, request_id=request_id)
 
-    @model_observer(BaseDealEggsModel, serializer_class=CalculateEggsSerializer)
+    @model_observer(BaseDealEggsModel, serializer_class=CalculateEggsSerializerSideBarObserver)
+    @ws_auth
     async def calc_activity(
             self, base_deal: str, action: str, subscribing_request_ids=[], **kwargs):
-        if self.auth:
-            for request_id in subscribing_request_ids:
-                await self.check_action(message=base_deal, action=action, request_id=request_id)
-        else:
-            await super().close() 
+        for request_id in subscribing_request_ids:
+            await self.check_action_side_bar(message=base_deal, action=action, request_id=request_id)
 
-    @model_observer(BaseDealEggsModel, serializer_class=ConfirmedCalculateEggsSerializer)
+    @model_observer(BaseDealEggsModel, serializer_class=ConfirmedCalculateEggsSerializerSideBarObserver)
+    @ws_auth
     async def conf_calc_activity(
             self, base_deal: str, action: str, subscribing_request_ids=[], **kwargs):
-        if self.auth:
-            for request_id in subscribing_request_ids:
-                await self.check_action(message=base_deal, action=action, request_id=request_id)
-        else:
-            await super().close() 
+        for request_id in subscribing_request_ids:
+            await self.check_action_side_bar(message=base_deal, action=action, request_id=request_id)
 
-    @model_observer(BaseDealEggsModel, serializer_class=BaseDealEggsSerializer)
+    @model_observer(BaseDealEggsModel, serializer_class=DealEggsSerializerSideBarObserver)
+    @ws_auth
     async def base_deal_activity(
             self, base_deal: str, action: str, subscribing_request_ids=[], **kwargs):
-        if self.auth:
-            for request_id in subscribing_request_ids:
-                await self.check_action(message=base_deal, action=action, request_id=request_id)
-        else:
-            await super().close() 
+        for request_id in subscribing_request_ids:
+            await self.check_action(message=base_deal, action=action, request_id=request_id)
 
     @seller_app_activity.groups_for_signal
     def seller_app_activity(self, instance: ApplicationFromSellerBaseEggs, **kwargs):
         if instance.is_active:
-            yield f'-owner__{instance.owner_id}' 
+            yield f'-owner__{instance.owner_id}'
 
     @buyer_app_activity.groups_for_signal
     def buyer_app_activity(self, instance: ApplicationFromBuyerBaseEggs, **kwargs):
@@ -132,7 +117,7 @@ class SideBarSubConsumer(GenericAsyncAPIConsumer):
     @seller_app_activity.groups_for_consumer
     def seller_app_activity(self, **kwargs):
         if isinstance(kwargs['user'], CustomUser):
-            yield f'-owner__{kwargs["user"].pk}'  
+            yield f'-owner__{kwargs["user"].pk}'
 
     @buyer_app_activity.groups_for_consumer
     def buyer_app_activity(self, **kwargs):
@@ -156,46 +141,64 @@ class SideBarSubConsumer(GenericAsyncAPIConsumer):
 
     @database_sync_to_async
     def get_current_side_bar(self) -> dict | None:
-        if self.auth and self.user:
+        if self.auth and self.user:    #TODO buyer and seller name abstract class error (how get name)
             serializer_current_user_app_buyer_eggs = ApplicationBuyerEggsSerializerSideBar(
-                ApplicationFromBuyerBaseEggs.objects.only(
-                    'id', 'owner_id', 'is_active', 
-                ).filter(Q(is_active=True) & Q(owner_id=self.user.pk)), many=True)
+                ApplicationFromBuyerBaseEggs.objects.select_related(
+                    'current_buyer'
+                ).filter(Q(is_active=True) & Q(owner_id=self.user.pk)).annotate(
+                    name=F('current_buyer__requisites__name')
+            ).values('id', 'is_actual', 'await_add_cost', 'name'), many=True)
+
             serializer_current_user_app_selller_eggs = ApplicationSellerEggsSerializerSideBar(
-                ApplicationFromSellerBaseEggs.objects.only(
-                    'id', 'owner_id', 'is_active', 
-                ).filter(Q(is_active=True) & Q(owner_id=self.user.pk)), many=True)
+                ApplicationFromSellerBaseEggs.objects.select_related(
+                    'current_seller'
+                ).filter(Q(is_active=True) & Q(owner_id=self.user.pk)).annotate(
+                    name=F('current_seller__requisites__name')
+            ).values('id', 'is_actual', 'await_add_cost', 'name'), many=True)
+
             calcs_user_is_active = CalculateEggsSerializerSideBar(
-                BaseDealEggsModel.objects.only(
+                BaseDealEggsModel.objects.select_related(
+                    'buyer', 'seller', 'owner'
+                ).filter(Q(status=1) & Q(is_active=True) & Q(owner_id=self.user.pk)).annotate(
+                    seller_name_orm=F('seller__requisites__name'),
+                    buyer_name_orm=F('buyer__requisites__name')
+                ).values(
                     'id', 'documents_id', 'deal_our_pay_amount',
                     'deal_buyer_pay_amount', 'logic_our_pay_amount',
-                    'is_active', 'status', 'owner_id'
-                ).filter(Q(status=1) & Q(is_active=True) & Q(owner_id=self.user.pk)),
-                many=True)
+                    'is_active', 'status', 'owner_id', 'seller_name_orm', 'buyer_name_orm',
+                ), many=True)
+
             confirmed_calcs_user_is_active = ConfirmedCalculateEggsSerializerSideBar(
-                BaseDealEggsModel.objects.only(
+                BaseDealEggsModel.objects.select_related(
+                    'buyer', 'seller', 'owner'
+                ).filter(Q(status=2) & Q(is_active=True) & Q(owner_id=self.user.pk)).annotate(
+                    seller_name_orm=F('seller__requisites__name'),
+                    buyer_name_orm=F('buyer__requisites__name')
+                ).values(
                     'id', 'documents_id', 'deal_our_pay_amount',
                     'deal_buyer_pay_amount', 'logic_our_pay_amount',
-                    'is_active', 'status', 'owner_id'
-                ).filter(Q(status=2) & Q(is_active=True) & Q(owner_id=self.user.pk)),
-                many=True)
+                    'is_active', 'status', 'owner_id', 'seller_name_orm', 'buyer_name_orm',
+                ), many=True)
+
             deal_side_bar = DealEggsSerializerSideBar(
-                BaseDealEggsModel.objects.only(
-                    'id', 'documents_id', 'deal_our_pay_amount',
-                    'deal_buyer_pay_amount', 'logic_our_pay_amount',
-                    'is_active', 'status', 'owner_id'
+                BaseDealEggsModel.objects.select_related(
+                    'buyer', 'seller', 'owner'
                 ).filter(Q(status=3) & Q(is_active=True) & Q(owner_id=self.user.pk)).annotate(
-                    new_id=F('documents_id'),
-                    model_id=F('id')).values('new_id', 'model_id'
-                ).annotate(id=F('new_id')).values('id', 'model_id'),
-                many=True)
+                    seller_name_orm=F('seller__requisites__name'),
+                    buyer_name_orm=F('buyer__requisites__name')
+                ).values(
+                    'id', 'documents_id', 'deal_our_pay_amount',
+                    'deal_buyer_pay_amount', 'logic_our_pay_amount', 'deal_status',
+                    'is_active', 'status', 'owner_id', 'seller_name_orm', 'buyer_name_orm',
+                ), many=True)
+
             resp_data = {
-                'current_user_application_from_buyer_eggs': serializer_current_user_app_buyer_eggs.data, 
+                'current_user_application_from_buyer_eggs': serializer_current_user_app_buyer_eggs.data,
                 'current_user_application_from_seller_eggs': serializer_current_user_app_selller_eggs.data,
                 'current_user_calculate_eggs': calcs_user_is_active.data,
                 'current_user_confirmed_calculate_eggs': confirmed_calcs_user_is_active.data,
                 'current_user_deal_eggs': deal_side_bar.data,
-                }
+            }
             return resp_data
 
     @action()
@@ -206,18 +209,5 @@ class SideBarSubConsumer(GenericAsyncAPIConsumer):
                 action=action,
             )
         else:
-            await super().close() 
+            await super().close()
 
-    async def send_json(self, content, close=False):
-        """
-        Custom send, for change dumps, for rus latters.
-        """
-        await super().send(text_data=await self.encode_json(content), close=close)
-
-    async def encode_json(self, content):
-        return json.dumps(content, ensure_ascii=False)
-
-    async def check_action(self, message: str, action: str, request_id: str):
-        allow_methhods = ('delete', 'create')
-        if action in allow_methhods:
-            await self.reply(data=message, action=action, request_id=request_id)

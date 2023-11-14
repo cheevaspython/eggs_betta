@@ -1,34 +1,64 @@
+import json
+
+import logging
+
 from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
 from djangochannelsrestframework.observer.generics import ObserverModelInstanceMixin
-from djangochannelsrestframework.permissions import IsAuthenticated 
-from djangochannelsrestframework.observer import model_observer
 from djangochannelsrestframework.decorators import action
 
-from product_eggs.models.messages import MessageToUserEggs
-from product_eggs.serializers.base_deal_serializers import BaseDealEggsSerializer
-from product_eggs.serializers.messages_serializers import MessageToUserEggsSerializer
-from product_eggs.models.base_deal import BaseDealEggsModel
-from users.serializers import CustomUserSerializer 
 from users.models import CustomUser
+from websocket.middleware import get_model
+
+logger = logging.getLogger(__name__)
 
 
-class BaseDealConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
-    queryset = BaseDealEggsModel.objects.all()
-    serializer_class = BaseDealEggsSerializer
-    permission_classes = [IsAuthenticated]   
+class CustomAPIConsumer(GenericAsyncAPIConsumer, ObserverModelInstanceMixin):
+    auth = False
+    user = None
 
-
-class ModelSubConsumer(GenericAsyncAPIConsumer):
-    queryset = CustomUser.objects.all() 
-    serializer_class = CustomUserSerializer
-
-    @model_observer(MessageToUserEggs, serializer_class=MessageToUserEggsSerializer)
-    async def comment_activity(self, message: str, action: str, subscribing_request_ids=[], **kwargs):
-        for request_id in subscribing_request_ids:
-            await self.reply(data=message, action=action, request_id=request_id)
+    async def auth_close(self):
+        await super().close()
 
     @action()
-    async def subscribe_to_comment_activity(self, request_id: str, **kwargs):
-        await self.comment_activity.subscribe(request_id=request_id)
+    async def authorization(self, request_id: str, action: str, **kwargs):
+        if kwargs['token']:
+            try:
+                self.user = await get_model(kwargs['token'])
+                if isinstance(self.user, CustomUser):
+                    self.auth = True
+                    await self.reply(
+                        data={'authorization': True, 'user': self.user.pk}, action=action)
+                else:
+                    await self.reply(
+                        data={'authorization': False}, action=action)
+                    await self.auth_close()
 
+            except AttributeError as e:
+                logger.info('wrong token in ws auth', e)
+                await self.reply(
+                    data={'authorization': False}, action=action)
+                await self.auth_close()
 
+            except TypeError as e:
+                logger.info('wrong token in ws auth', e)
+                await self.reply(
+                    data={'authorization': False}, action=action)
+                await self.auth_close()
+        else:
+            await self.reply(
+                data={'authorization': False}, action=action)
+            await self.auth_close()
+            await self.auth_close()
+
+    async def encode_json(self, content):
+        return json.dumps(content, ensure_ascii=False)
+
+    async def check_action(self, message: str, action: str, request_id: str):
+        allow_methhods = ('delete', 'create', 'update')
+        if action in allow_methhods:
+            await self.reply(data=message, action=action, request_id=request_id)
+
+    async def check_action_side_bar(self, message: str, action: str, request_id: str):
+        allow_methhods = ('delete', 'create', )
+        if action in allow_methhods:
+            await self.reply(data=message, action=action, request_id=request_id)
