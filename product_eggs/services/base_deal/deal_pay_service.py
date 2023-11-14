@@ -1,5 +1,4 @@
 import logging
-
 from datetime import datetime, timedelta
 
 from django.core.exceptions import ObjectDoesNotExist

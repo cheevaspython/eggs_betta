@@ -1,9 +1,6 @@
 import logging
-
 from datetime import datetime
-
 from django.db import transaction
-
 from collections import OrderedDict
 
 from product_eggs.models.balance import BalanceBaseClientEggs

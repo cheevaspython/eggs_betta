@@ -1,12 +1,8 @@
 from datetime import datetime
 import uuid
-
 from collections.abc import Iterable
-
 from dataclasses import asdict
-
 from typing import Union
-
 from rest_framework import serializers
 
 from product_eggs.models.documents import (

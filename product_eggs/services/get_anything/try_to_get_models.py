@@ -1,10 +1,8 @@
 from typing import Optional
-
 from django.core.exceptions import ObjectDoesNotExist
-
 from rest_framework import serializers
-from product_eggs.models.balance import BalanceBaseClientEggs
 
+from product_eggs.models.balance import BalanceBaseClientEggs
 from product_eggs.models.base_client import LogicCardEggs, SellerCardEggs, BuyerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel, DocumentsDealEggsModel

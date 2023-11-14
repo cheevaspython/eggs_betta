@@ -1,9 +1,6 @@
 import logging
-
 from datetime import datetime
-
 from django.db import transaction
-
 from rest_framework import serializers
 
 from product_eggs.models.tails import TailsContragentModelEggs

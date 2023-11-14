@@ -1,11 +1,7 @@
 import uuid
-
 import logging
-
 from datetime import datetime
-
 from dataclasses import asdict
-
 from rest_framework import serializers
 
 from product_eggs.models.base_client import (

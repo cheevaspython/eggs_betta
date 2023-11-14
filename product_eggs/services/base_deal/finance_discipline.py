@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, date
-
 from rest_framework import serializers
 
 from product_eggs.models.base_deal import BaseDealEggsModel

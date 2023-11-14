@@ -1,7 +1,5 @@
 import logging
-
 from collections import namedtuple
-
 from typing import OrderedDict
 
 from django.core.exceptions import ObjectDoesNotExist

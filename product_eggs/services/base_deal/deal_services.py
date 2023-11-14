@@ -1,5 +1,4 @@
 from collections import OrderedDict
-
 from datetime import datetime, timedelta
 
 from django.core.exceptions import ObjectDoesNotExist

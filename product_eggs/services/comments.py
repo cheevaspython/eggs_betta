@@ -1,11 +1,7 @@
 import logging
-
 from datetime import datetime
-
 from typing import OrderedDict
-
 from rest_framework import serializers
-
 from django.core.exceptions import ObjectDoesNotExist
 
 from product_eggs.models.applications import (
