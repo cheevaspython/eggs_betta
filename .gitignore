@@ -2,6 +2,10 @@ __pycache__/
 *.py[cod]
 *.pyc
 
+*/migrations/
+/migrations/*
+/migrations/
+
 # macOS
 .DS_Store
 
