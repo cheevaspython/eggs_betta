@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*.pyc
+
+# macOS
+.DS_Store
+
+# Vim swap files
+*.swp
