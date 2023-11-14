@@ -64,8 +64,6 @@ if DEBUG:
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
         "http://127.0.0.1:8080",
-        "http://217.10.41.129:8080",
-        "http://217.10.41.129:8328",
     ]
 CORS_ALLOW_HEADERS = list(default_headers) + ['Set-Cookie']
 
@@ -108,10 +106,6 @@ REST_FRAMEWORK = {
     ),
     'DATETIME_FORMAT': "%d.%m.%Y %H:%M:%S",
 }
-
-# MIGRATION_MODULES = {
-#     'app_name': 'path.to.migration.module',
-# }
 
 SIMPLE_JWT = {
   'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -208,8 +202,6 @@ CACHES = {
         "LOCATION": redis_port,
         "OPTIONS": {
             "db": "1",
-            # "parser_class": "redis.connection.PythonParser",
-            # "pool_class": "redis.BlockingConnectionPool",
         },
     }
 }
@@ -257,15 +249,3 @@ LOGGING = {
         },
     },
 }
-# LOGGING = {
-#         'version': 1,
-#         'handlers': {
-#             'console': {'class': 'logging.StreamHandler'}
-#         },
-#         'loggers': {
-#                 'django.db.backends': {
-#                     'handlers': ['console'],
-#                     'level': 'DEBUG'
-#                     }
-#         }
-#     }
