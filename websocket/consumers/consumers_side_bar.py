@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class SideBarSubConsumer(CustomAPIConsumer):
+    """ws for sidebar"""
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
@@ -141,7 +142,7 @@ class SideBarSubConsumer(CustomAPIConsumer):
 
     @database_sync_to_async
     def get_current_side_bar(self) -> dict | None:
-        if self.auth and self.user:    #TODO buyer and seller name abstract class error (how get name)
+        if self.auth and self.user:    
             serializer_current_user_app_buyer_eggs = ApplicationBuyerEggsSerializerSideBar(
                 ApplicationFromBuyerBaseEggs.objects.select_related(
                     'current_buyer'

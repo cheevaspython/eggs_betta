@@ -1,4 +1,3 @@
-from collections import namedtuple
 import logging
 
 from django.db.models import Prefetch, Q
@@ -12,9 +11,7 @@ from product_eggs.models.balance import BalanceBaseClientEggs
 
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
-from product_eggs.models.documents import DocumentsContractEggsModel
 from product_eggs.models.entity import EntityEggs
-from product_eggs.models.tails import TailsContragentModelEggs
 from product_eggs.serializers.balance_serializers import (
     StatisticBuyerClientSerializer, StatisticLogicClientSerializer,
     StatisticSellerClientSerializer

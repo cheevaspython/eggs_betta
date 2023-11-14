@@ -2,14 +2,18 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 
 from product_eggs.models.comment import CommentEggs
-from product_eggs.serializers.applications_serializers import ApplicationBuyerEggsDetailSerializer, \
-    ApplicationSellerEggsDetailSerializer
-from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
-    ApplicationFromSellerBaseEggs
+from product_eggs.serializers.applications_serializers import (
+    ApplicationBuyerEggsDetailSerializer, ApplicationSellerEggsDetailSerializer
+)
+from product_eggs.models.applications import (
+    ApplicationFromBuyerBaseEggs, ApplicationFromSellerBaseEggs
+)
 from product_eggs.services.dates_check import validate_datas_for_positive_app, validation_delivery_interval
 from product_eggs.models.custom_model_viewset import CustomModelViewSet
-from product_eggs.permissions.apps_permission import USER_ROLES_SUPER, check_create_buyer_application_user_permission, \
+from product_eggs.permissions.apps_permission import (
+    USER_ROLES_SUPER, check_create_buyer_application_user_permission,
     check_create_seller_application_user_permission, check_edit_application_user_permission
+)
 from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
 from users.models import CustomUser
 

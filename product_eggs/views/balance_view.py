@@ -18,7 +18,6 @@ from product_eggs.serializers.base_client_serializers import (
     SellerCardEggsSerializerBukh
 )
 from product_eggs.permissions.validate_user import (
-    validate_user_for_statistic_page_change,
     validate_user_for_statistic_page_list,
     validate_user_for_statistic_page_list_logic
 )

@@ -26,7 +26,7 @@ DELETE_CLIENT_MODELS = (
     'seller', 'buyer', 'logic'
 )
 ENTITY_BOOK = [
-    '5612163931', '5048057438', 'application_contract_logic_entity_empty'
+    'test', 'test1', 'application_contract_logic_entity_empty'
 ]
 
 

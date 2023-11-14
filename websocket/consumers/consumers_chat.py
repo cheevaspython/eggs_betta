@@ -65,29 +65,6 @@ class ChatConsumer(CustomAPIConsumer):
             room_message_data = [await self.get_room_messages(room_pk) for room_pk in user_rooms]
             await self.send_json({'data': room_message_data, 'action': 'connected to rooms'})
 
-    # @action()
-    # @ws_auth
-    # async def reconnect_subscribe_all_user_rooms(self, *args, **kwargs) -> None:
-    #     user_rooms: set = await self.get_user_active_rooms()
-    #     if len(user_rooms) > len(self.current_active_rooms):
-    #         need_to_connect: set = user_rooms - self.current_active_rooms
-    #     elif len(user_rooms) < len(self.current_active_rooms):
-    #         need_to_connect: set = self.current_active_rooms - user_rooms #TODO not reazil
-    #     else:
-    #         need_to_connect: set = set()
-    #     # need_to_disconnect: set = self.current_active_rooms - user_rooms #TODO not reazil
-    #     await self.subscribe_to_gen_messages()
-    #     if need_to_connect:
-    #         self.current_active_rooms = need_to_connect
-    #         [await self.subscribe_to_messages_current_room(pk=room_pk) for room_pk in need_to_connect]
-    #         room_message_data = [await self.get_room_messages(room_pk) for room_pk in user_rooms]
-    #         await self.send_json(
-    #             {'data': room_message_data,
-    #              'action': 'connected to rooms'})
-    #     else:
-    #         pass
-            # self.current_active_rooms = self.current_active_rooms | need_to_connect
-
     @action()
     @ws_auth
     async def add_user_to_room(self, room_pk: int, user_pk_list: list[int], action: str, *args, **kwargs):

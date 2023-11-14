@@ -1,6 +1,6 @@
 from django.contrib import admin
-from product_eggs.models.balance import BalanceBaseClientEggs
 
+from product_eggs.models.balance import BalanceBaseClientEggs
 from product_eggs.models.base_client import (
     BuyerCardEggs, SellerCardEggs, LogicCardEggs
 )
