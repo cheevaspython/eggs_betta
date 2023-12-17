@@ -13,11 +13,11 @@ from product_eggs.services.data_class.data_class_documents import (
 )
 from product_eggs.services.documents.documents_parse_tmp_json import DealDocumentsPaymentParser
 from product_eggs.services.get_anything.try_to_get_models import get_client_for_inn
-from product_eggs.services.tails import (
+from product_eggs.services.tails.tails import (
     subtract_tail_edit_amount_and_actives,
     TailsTreatment, transaction_tails_data, verificate_total_tail_amount_and_pay_quantity
 )
-from product_eggs.services.tails_recoursia import ComparePayQuantinyAndTail
+from product_eggs.services.tails.tails_recoursia import ComparePayQuantinyAndTail
 from product_eggs.tests.create_models import TestModelCreator
 from users.models import CustomUser
 

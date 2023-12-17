@@ -3,12 +3,9 @@ import logging
 from django.db.models import Prefetch, Q
 from djangochannelsrestframework.observer import model_observer
 from djangochannelsrestframework.decorators import action
-
 from channels.db import database_sync_to_async
-from rest_framework import serializers
 
 from product_eggs.models.balance import BalanceBaseClientEggs
-
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.entity import EntityEggs
@@ -16,9 +13,9 @@ from product_eggs.serializers.balance_serializers import (
     StatisticBuyerClientSerializer, StatisticLogicClientSerializer,
     StatisticSellerClientSerializer
 )
+from product_eggs.services.validationerror import custom_error
 from users.serializers import CustomUserSerializer
 from users.models import CustomUser
-
 from websocket.consumers.consumers import CustomAPIConsumer
 from websocket.services.dataclass import ModelsAndSerializers
 from websocket.services.decorator import ws_auth
@@ -67,7 +64,7 @@ class BalanceConsumer(CustomAPIConsumer):
             cur_model = 'logic'
             cur_model_inn = instance.client_logic.pk
         else:
-            raise serializers.ValidationError('current balance error in search current client')
+            raise custom_error('current balance error in search current client', 433)
 
         serializer = contragents_models[cur_model].serializer(
             contragents_models[cur_model].model.objects.filter(
@@ -100,7 +97,8 @@ class BalanceConsumer(CustomAPIConsumer):
             action: str,
             cur_model: str,
             cur_model_inn: str | None = None,
-            entity_inn: str | None = None, **kwargs):
+            entity_inn: str | None = None, **kwargs
+        ):
         if cur_model_inn and entity_inn:
             await self.reply(
                 data=await self.get_current_client(cur_model, cur_model_inn, entity_inn),
@@ -140,7 +138,8 @@ class BalanceConsumer(CustomAPIConsumer):
             self,
             cur_model: str,
             cur_model_inn: str,
-            entity_inn: str) -> dict:
+            entity_inn: str
+        ) -> dict:
 
         return_book = dict()
 

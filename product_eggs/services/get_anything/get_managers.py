@@ -1,8 +1,7 @@
-from users.models import CustomUser
-
 from django.core.exceptions import ObjectDoesNotExist
 
 from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs
+from users.models import CustomUser
 
 
 def get_managers(inn_seller: int, inn_buyer: int) -> list[CustomUser]:

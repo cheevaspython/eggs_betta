@@ -17,6 +17,7 @@ from product_eggs.routers.requisites import requisites_router
 from product_eggs.routers.tails import tails_router
 from product_eggs.routers.comments import comments_router
 from product_eggs.routers.contact_person import contact_person_router
+from product_eggs.routers.personal_area import personal_area_router
 
 __all__ = (
     'application_from_buyer_router',
@@ -36,4 +37,5 @@ __all__ = (
     'guest_card_eggs_router',
     'comments_router',
     'contact_person_router',
+    'personal_area_router',
 )

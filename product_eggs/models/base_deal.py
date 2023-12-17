@@ -66,7 +66,8 @@ class BaseDealEggsModel(models.Model):
         (7, 'на ожидании загрузки исходящей УПД бухгалтером'),
         (8, 'на разгрузке, ожидаем подписанную УПД'),
         (9, 'на проверке загруженных документов бухгалтером'),
-        (10, 'сделка закрыта'),
+        (10, 'на ожидании полной оплаты покупателем'),
+        (11, 'сделка закрыта'),
     )
     # Логирование
     log_status_calc_query = models.JSONField(
@@ -106,6 +107,11 @@ class BaseDealEggsModel(models.Model):
     owner = models.ForeignKey(
         CustomUser, related_name='deal',
         verbose_name='Автор', on_delete=models.SET_NULL,
+        null=True,
+    )
+    deal_manager = models.ForeignKey(
+        CustomUser, related_name='deal_manager',
+        verbose_name='Директор', on_delete=models.SET_NULL,
         null=True,
     )
     current_logic = models.ForeignKey(
@@ -280,6 +286,10 @@ class BaseDealEggsModel(models.Model):
         blank=True, null=True,
     )
     # Оплата
+    id_from_1c = models.CharField(
+        max_length=20, blank=True, null=True,
+        verbose_name='Номер из 1С',
+    )
     logic_our_debt_for_app_contract = models.FloatField(
         default=0,
         verbose_name='Долг перед перевозчиком по договору-заявке',
@@ -311,6 +321,10 @@ class BaseDealEggsModel(models.Model):
     )
     payback_day_for_buyer = models.DateField(
         verbose_name='Дата оплаты для покупателя',
+        null=True, blank=True,
+    )
+    close_deal_date = models.DateField(
+        verbose_name='Дата полной оплаты покупателем',
         null=True, blank=True,
     )
     postponement_pay_for_us = models.PositiveIntegerField(
@@ -587,7 +601,6 @@ class BaseDealEggsModel(models.Model):
                         change_client_balance(balance, delta, False)
                 else:
                     raise KeyError(f'error in basedeal -> {self.pk} logic_pay changed, but self current_logic is None or entity is None!!!')
-
 
     def __str__(self):
         if self.status == 1:

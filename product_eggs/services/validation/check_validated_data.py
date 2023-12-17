@@ -1,11 +1,8 @@
 import logging
-
 from datetime import datetime
-
 from typing import OrderedDict
 
 from django.utils import timezone
-from rest_framework import serializers
 
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel, DocumentsDealEggsModel
@@ -20,6 +17,7 @@ from product_eggs.services.documents.documents_static import (
     DOC_CONTRACT_CASH, DOC_CONTRACT_CONTRACT, DOC_CONTRACT_MULTY_PAY
 )
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 logger = logging.getLogger(__name__)
@@ -53,19 +51,25 @@ def check_data_for_note(
 
 
 def convert_front_data_to_prepaydataforsave(entry_data: OrderedDict) -> PrePayOrderDataForSave:
+    """
+    Конвертирует сериализованные данные в dataclass PrePayOrderDataForSave
+    """
     try:
         pre_pay_data = PrePayOrderDataForSave(**entry_data['tmp_json'])
         return pre_pay_data
     except (KeyError, AttributeError) as e:
-        raise serializers.ValidationError('wrong tmp_data for pay', e)
+        raise custom_error(f'wrong tmp_data for pay {e}', 433)
 
 
 def convert_front_data_to_prepaydataforsavemulti(entry_data: OrderedDict) -> PrePayOrderDataForSaveMulti:
+    """
+    Конвертирует сериализованные данные в dataclass PrePayOrderDataForSaveMulti
+    """
     try:
         pre_pay_data_multi = PrePayOrderDataForSaveMulti(**entry_data['tmp_json_multi_pay_order'])
         return pre_pay_data_multi
     except (KeyError, AttributeError) as e:
-        raise serializers.ValidationError('wrong tmp_json_for_multi_pay_order for pay', e)
+        raise custom_error(f'wrong tmp_json_for_multi_pay_order for pay {e}', 433)
 
 
 @try_decorator_param(('KeyError',))
@@ -73,6 +77,9 @@ def check_validated_data_for_tmp_json(
         serializer_data: OrderedDict,
         instance: DocumentsDealEggsModel,
         user: CustomUser) -> None:
+    """
+    Проверяет данные на наличие поля tmp_json
+    """
     if serializer_data['tmp_json']:
         parser = DealDocumentsPaymentParser(
             convert_front_data_to_prepaydataforsave(serializer_data),
@@ -87,7 +94,9 @@ def check_val_data_contract_multy_pay(
         serializer_data: OrderedDict,
         instance: DocumentsContractEggsModel,
         user: CustomUser) -> bool:
-
+    """
+    Запускает логику по подсчету и сохранению платежных документов
+    """
     if check_data_for_value(serializer_data, 'multi_pay_order') and \
             check_data_for_value(serializer_data, 'tmp_json_multi_pay_order'):
         multi_data = convert_front_data_to_prepaydataforsavemulti(serializer_data)
@@ -120,8 +129,8 @@ def check_val_data_contract_multy_pay(
             return True
 
         else:
-            raise serializers.ValidationError(
-                'wrong tmp_json_multi_pay_order data (tmp_json form1, but not multi_pay_order)')
+            raise custom_error(
+                'wrong tmp_json_multi_pay_order data (tmp_json form1, but not multi_pay_order)', 433)
     else:
         return False
 
@@ -146,6 +155,9 @@ def check_val_data_contract_for_contract(
 
 
 def match_data_for_fresh_app(date: datetime):
+    """
+    Считает интервал для "светофора"
+    """
     interval = timezone.now() - date
     if interval.days == 0:
         return '#09ff005e'

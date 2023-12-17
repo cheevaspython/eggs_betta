@@ -6,6 +6,7 @@ from product_eggs.serializers.base_deal_serializers import BaseDealEggsSerialize
 from product_eggs.serializers.documents_serializers import DocumentsContractEggsSerializer
 from product_eggs.serializers.requisites_serializers import RequisitesEggsModelSerializer
 from product_eggs.serializers.tails_serializers import TailsEggsSerializer
+from product_eggs.services.validationerror import custom_error
 
 
 class BalanceBaseClientEggsSerializer(serializers.ModelSerializer):
@@ -34,11 +35,11 @@ class StatisticClientSerializer(serializers.ModelSerializer):
                         else:
                             percent = (i.balance / 10000000) * 100
                         result[i.entity.inn] = percent
-                    except ZeroDivisionError as e:
-                        raise serializers.ValidationError(
-                            f'В балансе {i.pk}, модели {instance} лимиты равны в сумме 0, проставьте данные для получения статистики.', e)
+                    except ZeroDivisionError:
+                        raise custom_error(
+                            f'В балансе {i.pk}, модели {instance} лимиты равны в сумме 0, проставьте данные для получения статистики.',)
                 else:
-                    raise serializers.ValidationError(
+                    raise custom_error(
                         f'В балансе {i.pk}, модели {instance} не установлены лимиты, проставьте их для получения статистики.')
         return result
 

@@ -24,6 +24,7 @@ class CalculateEggsSerializer(serializers.ModelSerializer):
 
             'cash', 'import_application',
             'calc_to_confirm',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -75,6 +76,8 @@ class CalculateEggsNamesSerializer(serializers.ModelSerializer):
     sum_seller = serializers.ReadOnlyField(source='sum_seller_orm')
     expense_total = serializers.ReadOnlyField(source='expense_total_orm')
     expense_detail_json = serializers.ReadOnlyField(source='expense_detail_json_orm')
+    expense_logic_pay = serializers.ReadOnlyField(source='expense_logic_pay_orm')
+    expense_logic_name = serializers.ReadOnlyField(source='expense_logic_name_orm')
 
     class Meta:
         model = BaseDealEggsModel
@@ -89,6 +92,7 @@ class CalculateEggsNamesSerializer(serializers.ModelSerializer):
 
             'is_active',
             'cash', 'import_application',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -126,6 +130,7 @@ class CalculateEggsNamesSerializer(serializers.ModelSerializer):
             'owner_name', 'buyer_name', 'seller_name',
             'seller_manager', 'buyer_manager', 'sum_buyer',
             'sum_seller', 'expense_total', 'expense_detail_json',
+            'expense_logic_name', 'expense_logic_pay',
         ]
 
 
@@ -144,6 +149,14 @@ class CalculateEggsNamesSerializerObserver(serializers.ModelSerializer):
     sum_buyer = serializers.SerializerMethodField()
     expense_total = serializers.SerializerMethodField()
     expense_detail_json = serializers.SerializerMethodField()
+    expense_logic_pay = serializers.SerializerMethodField()
+    expense_logic_name = serializers.SerializerMethodField()
+
+    def get_expense_logic_pay(self, instance):
+        return instance.additional_expense.logic_pay
+
+    def get_expense_logic_name(self, instance):
+        return instance.additional_expense.logic_name
 
     def get_expense_total(self, instance):
         return instance.additional_expense.expense_total
@@ -185,6 +198,7 @@ class CalculateEggsNamesSerializerObserver(serializers.ModelSerializer):
 
             'is_active',
             'cash', 'import_application',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -221,7 +235,8 @@ class CalculateEggsNamesSerializerObserver(serializers.ModelSerializer):
         ] + [
             'owner_name', 'buyer_name', 'seller_name',
             'seller_manager', 'buyer_manager', 'sum_buyer',
-            'sum_seller', 'expense_total', 'expense_detail_json'
+            'sum_seller', 'expense_total', 'expense_detail_json',
+            'expense_logic_pay', 'expense_logic_name',
         ]
 
 
@@ -242,6 +257,7 @@ class ConfirmedCalculateEggsSerializer(serializers.ModelSerializer):
 
             'cash', 'import_application',
             'calc_ready', 'logic_confirmed',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -296,6 +312,8 @@ class ConfirmedCalculateEggsNameSerializer(serializers.ModelSerializer):
     expense_detail_json = serializers.ReadOnlyField(source='expense_detail_json_orm')
     logic_inn = serializers.ReadOnlyField(source='logic_inn_orm')
     logic_name = serializers.ReadOnlyField(source='logic_name_orm')
+    expense_logic_pay = serializers.ReadOnlyField(source='expense_logic_pay_orm')
+    expense_logic_name = serializers.ReadOnlyField(source='expense_logic_name_orm')
 
     class Meta:
         model = BaseDealEggsModel
@@ -310,6 +328,7 @@ class ConfirmedCalculateEggsNameSerializer(serializers.ModelSerializer):
             'cash', 'import_application',
             'calc_ready', 'logic_confirmed',
             'is_active',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -347,7 +366,8 @@ class ConfirmedCalculateEggsNameSerializer(serializers.ModelSerializer):
         ] + [
             'buyer_name', 'seller_name', 'owner_name', 'logic_name', 'logic_inn',
             'expense_total', 'expense_detail_json',
-            'seller_manager', 'buyer_manager', 'sum_buyer', 'sum_seller'
+            'seller_manager', 'buyer_manager', 'sum_buyer', 'sum_seller',
+            'expense_logic_pay', 'expense_logic_name',
         ]
 
 
@@ -368,6 +388,14 @@ class ConfirmedCalculateEggsNameSerializerObserver(serializers.ModelSerializer):
     buyer_manager = serializers.SerializerMethodField()
     sum_seller = serializers.SerializerMethodField()
     sum_buyer = serializers.SerializerMethodField()
+    expense_logic_pay = serializers.SerializerMethodField()
+    expense_logic_name = serializers.SerializerMethodField()
+
+    def get_expense_logic_pay(self, instance):
+        return instance.additional_expense.logic_pay
+
+    def get_expense_logic_name(self, instance):
+        return instance.additional_expense.logic_name
 
     def get_seller_manager(self, instance):
         return instance.seller.manager.username
@@ -421,6 +449,7 @@ class ConfirmedCalculateEggsNameSerializerObserver(serializers.ModelSerializer):
             'cash', 'import_application',
             'calc_ready', 'logic_confirmed',
             'is_active',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -458,7 +487,8 @@ class ConfirmedCalculateEggsNameSerializerObserver(serializers.ModelSerializer):
         ] + [
             'buyer_name', 'seller_name', 'owner_name', 'logic_name', 'logic_inn',
             'expense_total', 'expense_detail_json',
-            'seller_manager', 'buyer_manager', 'sum_buyer', 'sum_seller'
+            'seller_manager', 'buyer_manager', 'sum_buyer', 'sum_seller',
+            'expense_logic_name', 'expense_logic_pay',
         ]
 
 
@@ -492,6 +522,7 @@ class BaseDealEggsSerializer(serializers.ModelSerializer):
 
             'cash', 'import_application',
             'calc_ready', 'logic_confirmed', 'deal_status_ready_to_change',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -549,6 +580,8 @@ class BaseDealEggsNameSerializer(serializers.ModelSerializer):
     expense_detail_json = serializers.ReadOnlyField(source='expense_detail_json_orm')
     logic_inn = serializers.ReadOnlyField(source='logic_inn_orm')
     logic_name = serializers.ReadOnlyField(source='logic_name_orm')
+    expense_logic_pay = serializers.ReadOnlyField(source='expense_logic_pay_orm')
+    expense_logic_name = serializers.ReadOnlyField(source='expense_logic_name_orm')
 
     class Meta:
         model = BaseDealEggsModel
@@ -564,6 +597,7 @@ class BaseDealEggsNameSerializer(serializers.ModelSerializer):
             'cash', 'import_application',
             'calc_ready', 'logic_confirmed',
             'is_active',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -607,6 +641,7 @@ class BaseDealEggsNameSerializer(serializers.ModelSerializer):
             'buyer_name', 'seller_name', 'owner_name', 'logic_name', 'logic_inn',
             'expense_total', 'expense_detail_json', 'documents_detail',
             'seller_manager', 'buyer_manager', 'sum_seller', 'sum_buyer',
+            'expense_logic_name', 'expense_logic_pay',
         ]
 
 
@@ -624,6 +659,14 @@ class BaseDealEggsNameSerializerObserver(serializers.ModelSerializer):
     buyer_manager = serializers.SerializerMethodField()
     sum_seller = serializers.SerializerMethodField()
     sum_buyer = serializers.SerializerMethodField()
+    expense_logic_pay = serializers.SerializerMethodField()
+    expense_logic_name = serializers.SerializerMethodField()
+
+    def get_expense_logic_pay(self, instance):
+        return instance.additional_expense.logic_pay
+
+    def get_expense_logic_name(self, instance):
+        return instance.additional_expense.logic_name
 
     def get_seller_manager(self, instance):
         return instance.seller.manager.username
@@ -672,6 +715,7 @@ class BaseDealEggsNameSerializerObserver(serializers.ModelSerializer):
             'cash', 'import_application',
             'calc_ready', 'logic_confirmed',
             'is_active',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -715,6 +759,7 @@ class BaseDealEggsNameSerializerObserver(serializers.ModelSerializer):
             'buyer_name', 'seller_name', 'owner_name', 'logic_name', 'logic_inn',
             'expense_total', 'expense_detail_json', 'documents_detail',
             'seller_manager', 'buyer_manager', 'sum_seller', 'sum_buyer',
+            'expense_logic_pay', 'expense_logic_name',
         ]
 
 
@@ -735,6 +780,7 @@ class CompleteDealEggsModelSerializer(serializers.ModelSerializer):
 
             'cash', 'import_application',
             'calc_ready', 'logic_confirmed', 'deal_status_ready_to_change',
+            'id_from_1c',
 
             'delivery_cost', 'delivery_by_seller',
             'delivery_form_payment', 'delivery_type_of_payment',
@@ -790,6 +836,8 @@ class BaseCompDealEggsNameSerializer(serializers.ModelSerializer): #TODO
     expense_detail_json = serializers.ReadOnlyField(source='expense_detail_json_orm')
     logic_inn = serializers.ReadOnlyField(source='logic_inn_orm')
     logic_name = serializers.ReadOnlyField(source='logic_name_orm')
+    expense_logic_pay = serializers.ReadOnlyField(source='expense_logic_pay_orm')
+    expense_logic_name = serializers.ReadOnlyField(source='expense_logic_name_orm')
 
     class Meta:
         model = BaseDealEggsModel
@@ -801,6 +849,7 @@ class BaseCompDealEggsNameSerializer(serializers.ModelSerializer): #TODO
             'log_status_calc_query', 'log_status_conf_calc_query',
             'log_status_deal_query',
             'is_active',
+            'id_from_1c',
 
             'application_from_buyer', 'application_from_seller',
             'buyer', 'seller', 'owner', 'entity',
@@ -850,6 +899,7 @@ class BaseCompDealEggsNameSerializer(serializers.ModelSerializer): #TODO
             'buyer_name', 'seller_name', 'owner_name', 'logic_name', 'logic_inn',
             'expense_total', 'expense_detail_json', 'documents_detail',
             'seller_manager', 'buyer_manager', 'sum_buyer', 'sum_seller',
+            'expense_logic_pay', 'expense_logic_name',
         ]
 
 
@@ -867,6 +917,14 @@ class BaseCompDealEggsNameSerializerObserver(serializers.ModelSerializer):
     buyer_manager = serializers.SerializerMethodField()
     sum_seller = serializers.SerializerMethodField()
     sum_buyer = serializers.SerializerMethodField()
+    expense_logic_pay = serializers.SerializerMethodField()
+    expense_logic_name = serializers.SerializerMethodField()
+
+    def get_expense_logic_pay(self, instance):
+        return instance.additional_expense.logic_pay
+
+    def get_expense_logic_name(self, instance):
+        return instance.additional_expense.logic_name
 
     def get_seller_manager(self, instance):
         return instance.seller.manager.username
@@ -911,6 +969,7 @@ class BaseCompDealEggsNameSerializerObserver(serializers.ModelSerializer):
             'log_status_calc_query', 'log_status_conf_calc_query',
             'log_status_deal_query',
             'is_active',
+            'id_from_1c',
 
             'application_from_buyer', 'application_from_seller',
             'buyer', 'seller', 'owner', 'entity',
@@ -960,6 +1019,7 @@ class BaseCompDealEggsNameSerializerObserver(serializers.ModelSerializer):
             'buyer_name', 'seller_name', 'owner_name', 'logic_name', 'logic_inn',
             'expense_total', 'expense_detail_json', 'documents_detail',
             'seller_manager', 'buyer_manager', 'sum_buyer', 'sum_seller',
+            'expense_logic_pay', 'expense_logic_name',
         ]
 
 
@@ -976,6 +1036,7 @@ class BaseDealEggsGetPaymentsSerializer(serializers.ModelSerializer):
             'payback_day_for_us', 'payback_day_for_buyer', 'deal_our_pay_amount',
             'deal_buyer_pay_amount', 'payback_day_for_us_logic', 'logic_our_pay_amount',
             'seller_name', 'buyer_name', 'logic_name',
+            'id_from_1c',
         ]
 
 
@@ -1048,6 +1109,7 @@ class BaseDealBalanceSerializer(serializers.ModelSerializer):
             'deal_buyer_debt_UPD', 'payback_day_for_us', 'payback_day_for_buyer',
             'deal_our_pay_amount', 'deal_our_debt_UPD', 'logic_our_pay_amount',
             'logic_our_debt_for_app_contract', 'delivery_form_payment', 'entity',
+            'id_from_1c',
         ]
 
 

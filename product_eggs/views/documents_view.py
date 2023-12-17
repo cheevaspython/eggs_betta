@@ -1,16 +1,22 @@
 from typing import OrderedDict
 
-from rest_framework import serializers, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
 from product_eggs.models.documents import DocumentsDealEggsModel, DocumentsContractEggsModel
-from product_eggs.serializers.base_deal_serializers import BaseDealEggsFinanceDisciplineBuyerSerializer, BaseDealEggsFinanceDisciplineLogicSerializer, BaseDealEggsFinanceDisciplineSellerSerializer, BaseDealEggsGetPaymentsSerializer
+from product_eggs.serializers.base_deal_serializers import (
+    BaseDealEggsFinanceDisciplineBuyerSerializer,
+    BaseDealEggsFinanceDisciplineLogicSerializer,
+    BaseDealEggsFinanceDisciplineSellerSerializer,
+    BaseDealEggsGetPaymentsSerializer
+)
 from product_eggs.serializers.documents_serializers import (
     DocumentsDealEggsSerializer, DocumentsContractEggsSerializer,
-    DocumentsDealGetEggsSerializer, DocumentsDeleteJsonSerializer, DocumentsGetFinanceSerializer, DocumentsGetPaymentsSerializer
+    DocumentsDealGetEggsSerializer, DocumentsDeleteJsonSerializer,
+    DocumentsGetFinanceSerializer, DocumentsGetPaymentsSerializer
 )
 from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
 from product_eggs.services.base_deal.deal_services import finance_discipline_search, search_payments
@@ -20,6 +26,7 @@ from product_eggs.services.validation.check_validated_data import (
     check_val_data_contract_for_contract, check_val_data_contract_multy_pay,
     check_validated_data_for_tmp_json
 )
+from product_eggs.services.validationerror import custom_error
 
 
 class DocumentsViewSet(viewsets.ViewSet):
@@ -30,8 +37,8 @@ class DocumentsViewSet(viewsets.ViewSet):
     """
     queryset = DocumentsDealEggsModel.objects.all()
     serializer_class = DocumentsDealEggsSerializer
-    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
 
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def get_deal_docs(self, request, pk=None) -> Response:
         serializer = DocumentsDealGetEggsSerializer(
             DocumentsDealEggsModel.objects.filter(pk=pk), many=True)
@@ -117,7 +124,7 @@ class DocumentsViewSet(viewsets.ViewSet):
                         serializer.validated_data['client_type']
                     ](search_data, many=True)
                 else:
-                    raise serializers.ValidationError('wrong client type in get_finance_discipline')
+                    raise custom_error('wrong client type in get_finance_discipline', 433)
 
                 for i in serializer.data:
                     try:
@@ -125,7 +132,6 @@ class DocumentsViewSet(viewsets.ViewSet):
                             color_book[i['finance_discipline']] += 1
                     except TypeError:
                         pass
-
                 return Response({'data': serializer.data, 'colors': color_book}, status=status.HTTP_200_OK)
             else:
                 return Response({'data': [], 'colors': color_book}, status=status.HTTP_200_OK)

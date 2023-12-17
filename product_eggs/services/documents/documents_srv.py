@@ -10,7 +10,7 @@ from product_eggs.services.data_class.data_class_documents import PayOrderDataFo
 from product_eggs.services.decorators import try_decorator_param
 from product_eggs.services.get_anything.get_patch_data_before_save import get_half_link_for_save
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
-from product_eggs.services.tails import tail_return_to_balance_and_del_old
+from product_eggs.services.tails.tails import tail_return_to_balance_and_del_old
 from users.models import CustomUser
 
 logger = logging.getLogger(__name__)

@@ -1,13 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F
-from rest_framework import serializers
 
 from product_eggs.models.base_deal import BaseDealEggsModel
-from product_eggs.models.documents import DocumentsDealEggsModel
 from product_eggs.serializers.base_deal_serializers import (
     BaseCompDealEggsNameSerializer, BaseDealEggsNameSerializer,
     CalculateEggsNamesSerializer, ConfirmedCalculateEggsNameSerializer
 )
+from product_eggs.services.validationerror import custom_error
 
 base_deal_serializers = {
     'calculate': CalculateEggsNamesSerializer,
@@ -17,8 +16,12 @@ base_deal_serializers = {
 }
 
 
-def get_base_deal_orm_request(base_deal_status: int):
-
+def get_base_deal_orm_request(base_deal_status: int) -> CalculateEggsNamesSerializer | \
+                                                ConfirmedCalculateEggsNameSerializer | \
+                                                BaseDealEggsNameSerializer | BaseCompDealEggsNameSerializer:
+    """
+    ОРМ запросы с подсчетом сумм
+    """
     match base_deal_status:
         case 1:
             calc_orm_request = CalculateEggsNamesSerializer(
@@ -68,6 +71,8 @@ def get_base_deal_orm_request(base_deal_status: int):
                     seller_name_orm = F('seller__requisites__name'),
                     buyer_name_orm = F('buyer__requisites__name'),
                     expense_total_orm = F('additional_expense__expense_total'),
+                    expense_logic_pay_orm = F('additional_expense__logic_pay'),
+                    expense_logic_name_orm = F('additional_expense__logic_name'),
                     expense_detail_json_orm = F('additional_expense__expense_detail_json'),
                 ), many=True)
             return calc_orm_request
@@ -122,6 +127,8 @@ def get_base_deal_orm_request(base_deal_status: int):
                     buyer_name_orm = F('buyer__requisites__name'),
                     expense_total_orm = F('additional_expense__expense_total'),
                     expense_detail_json_orm = F('additional_expense__expense_detail_json'),
+                    expense_logic_pay_orm = F('additional_expense__logic_pay'),
+                    expense_logic_name_orm = F('additional_expense__logic_name'),
                     logic_inn_orm = F('current_logic__inn'),
                     logic_name_orm = F('current_logic__requisites__name'),
                 ), many=True)
@@ -177,6 +184,8 @@ def get_base_deal_orm_request(base_deal_status: int):
                     buyer_name_orm = F('buyer__requisites__name'),
                     expense_total_orm = F('additional_expense__expense_total'),
                     expense_detail_json_orm = F('additional_expense__expense_detail_json'),
+                    expense_logic_pay_orm = F('additional_expense__logic_pay'),
+                    expense_logic_name_orm = F('additional_expense__logic_name'),
                     logic_inn_orm = F('current_logic__inn'),
                     logic_name_orm = F('current_logic__requisites__name'),
                 ), many=True)
@@ -232,17 +241,23 @@ def get_base_deal_orm_request(base_deal_status: int):
                     buyer_name_orm = F('buyer__requisites__name'),
                     expense_total_orm = F('additional_expense__expense_total'),
                     expense_detail_json_orm = F('additional_expense__expense_detail_json'),
+                    expense_logic_pay_orm = F('additional_expense__logic_pay'),
+                    expense_logic_name_orm = F('additional_expense__logic_name'),
                     logic_inn_orm = F('current_logic__inn'),
                     logic_name_orm = F('current_logic__requisites__name'),
                 ), many=True)
             return comp_base_deal_orm_request
 
         case _:
-            pass
+            raise custom_error('wrong status in get_base_deal_orm_request', 433)
 
 
-def get_base_deal_orm_request_param(base_deal_status: int, model_pk: int):
-
+def get_base_deal_orm_request_param(base_deal_status: int, model_pk: int) -> CalculateEggsNamesSerializer | \
+                                                    ConfirmedCalculateEggsNameSerializer | \
+                                                    BaseDealEggsNameSerializer | BaseCompDealEggsNameSerializer:
+    """
+    ОРМ запросы с подсчетом сумм, для конкретной модели
+    """
     try:
         match base_deal_status:
 
@@ -293,6 +308,8 @@ def get_base_deal_orm_request_param(base_deal_status: int, model_pk: int):
                         owner_name_orm = F('owner__username'),
                         expense_total_orm = F('additional_expense__expense_total'),
                         expense_detail_json_orm = F('additional_expense__expense_detail_json'),
+                        expense_logic_pay_orm = F('additional_expense__logic_pay'),
+                        expense_logic_name_orm = F('additional_expense__logic_name'),
                         seller_name_orm = F('seller__requisites__name'),
                         buyer_name_orm = F('buyer__requisites__name'),
                     ), many=True)
@@ -348,6 +365,8 @@ def get_base_deal_orm_request_param(base_deal_status: int, model_pk: int):
                         buyer_name_orm = F('buyer__requisites__name'),
                         expense_total_orm = F('additional_expense__expense_total'),
                         expense_detail_json_orm = F('additional_expense__expense_detail_json'),
+                        expense_logic_pay_orm = F('additional_expense__logic_pay'),
+                        expense_logic_name_orm = F('additional_expense__logic_name'),
                         logic_inn_orm = F('current_logic__inn'),
                         logic_name_orm = F('current_logic__requisites__name'),
                     ), many=True)
@@ -403,6 +422,8 @@ def get_base_deal_orm_request_param(base_deal_status: int, model_pk: int):
                         buyer_name_orm = F('buyer__requisites__name'),
                         expense_total_orm = F('additional_expense__expense_total'),
                         expense_detail_json_orm = F('additional_expense__expense_detail_json'),
+                        expense_logic_pay_orm = F('additional_expense__logic_pay'),
+                        expense_logic_name_orm = F('additional_expense__logic_name'),
                         logic_inn_orm = F('current_logic__inn'),
                         logic_name_orm = F('current_logic__requisites__name'),
                     ), many=True)
@@ -458,28 +479,18 @@ def get_base_deal_orm_request_param(base_deal_status: int, model_pk: int):
                         buyer_name_orm = F('buyer__requisites__name'),
                         expense_total_orm = F('additional_expense__expense_total'),
                         expense_detail_json_orm = F('additional_expense__expense_detail_json'),
+                        expense_logic_pay_orm = F('additional_expense__logic_pay'),
+                        expense_logic_name_orm = F('additional_expense__logic_name'),
                         logic_inn_orm = F('current_logic__inn'),
                         logic_name_orm = F('current_logic__requisites__name'),
                     ), many=True)
                 return comp_base_deal_orm_request
 
             case _:
-                pass
+                raise custom_error('wrong status in get_base_deal_orm_request', 433)
 
     except ObjectDoesNotExist as e:
-        raise serializers.ValidationError('error model pk in ws get_models param', e)
-
-
-
-
-
-
-
-
-
-
-
-
+        raise custom_error(f'error model pk in ws get_models param {e}', 433)
 
 
 

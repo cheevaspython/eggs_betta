@@ -1,20 +1,18 @@
 import logging
 
+from django.db.models import F
 from channels.db import database_sync_to_async
-
 from djangochannelsrestframework.observer.generics import action
 from djangochannelsrestframework.observer import model_observer
-
 from rest_framework.serializers import ReturnDict
-from product_eggs.models.base_deal import BaseDealEggsModel
 
+from product_eggs.models.base_deal import BaseDealEggsModel
 from websocket.consumers.consumers import CustomAPIConsumer
 from websocket.models import CustomRoom, WsMessage, GeneralRoom, GeneralWsMessage
 from websocket.serializers import (
     GeneralMessageWsSerializer, MessageWsSerializer, CustomRoomSerializer
 )
 from websocket.services.decorator import ws_auth
-
 from users.models import CustomUser
 from users.serializers import CustomUserSerializerWs
 
@@ -183,8 +181,8 @@ class ChatConsumer(CustomAPIConsumer):
 
     @database_sync_to_async
     def room_deleter(self, room_pk: int) -> ReturnDict | str:
-        room: CustomRoom = CustomRoom.objects.get(pk=room_pk)
-        if room.host == self.user:
+        room: CustomRoom | None = CustomRoom.objects.filter(pk=room_pk).prefetch_related('current_users').first()
+        if room and room.host == self.user:
             room.is_active = False
             room.save()
             return CustomRoomSerializer(room).data
@@ -215,7 +213,7 @@ class ChatConsumer(CustomAPIConsumer):
 
     @database_sync_to_async
     def get_user_active_rooms(self) -> set[int] | set:
-        active_rooms = CustomUser.objects.get(pk=self.user.pk).current_rooms.filter(is_active=True)
+        active_rooms = CustomUser.objects.get(pk=self.user.pk).current_rooms.filter(is_active=True).select_related('host')
         host_rooms = CustomUser.objects.get(pk=self.user.pk).host_rooms.filter(is_active=True)
         user_rooms = set(room.pk for room in active_rooms) | set(room.pk for room in host_rooms)
         return user_rooms if user_rooms else set()
@@ -261,15 +259,24 @@ class ChatConsumer(CustomAPIConsumer):
 
     @database_sync_to_async
     def get_room_messages(self, pk: int) -> dict:
-        cur_room = CustomRoom.objects.get(pk=pk)
+        # cur_room: CustomRoom | None = CustomRoom.objects.filter(pk=pk).select_related('host', 'zakrep_model').prefetch_related('current_users').first()
+        cur_room: CustomRoom = CustomRoom.objects.get(pk=pk)
+        # if cur_room:
         return {
             'room_details': CustomRoomSerializer(cur_room).data,
-            'room_messages': MessageWsSerializer(cur_room.messages.all(), many=True).data
+            'room_messages': MessageWsSerializer(cur_room.messages.all().annotate(
+                    username_orm = F('user__username')
+            ), many=True).data
         }
+        # else:
+        #     return {
+        #         'room_details': {},
+        #         'room_messages': {}
+        #     }
 
     @database_sync_to_async
     def check_add_to_generalroom(self) -> None:
-        if self.user not in self.general_room[0].current_users.all():
+        if self.user and self.user not in self.general_room[0].current_users.all():
             self.general_room[0].current_users.add(self.user)
             self.general_room[0].save()
 

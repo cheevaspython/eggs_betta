@@ -17,6 +17,9 @@ def search_done_base_deal_messages_and_turn_off(
 
 
 def find_messages_where_base_deal_and_not_done(base_deal_pk: int) -> QuerySet:
+    """
+    Ищет сообщения, где done = False
+    """
     return  MessageToUserEggs.objects.filter(
         current_base_deal=base_deal_pk, done=False)
 

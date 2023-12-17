@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from rest_framework import serializers
+from product_eggs.services.validationerror import custom_error
 
 
 class ValidationMassEggs():
@@ -51,9 +51,10 @@ class ValidationMassEggs():
         Сравнивает общую массу с допустимой.
         """
         if sum(self._mass_hash_map.values()) > self.MAXIMUM_WEIGHT_ONE_TRUCK:
-            raise serializers.ValidationError(
+            raise custom_error(
                 f'Суммарный вес продукции: {sum(self._mass_hash_map.values())}, ' +
-                f'превышает допустимый для перевозки: {self.MAXIMUM_WEIGHT_ONE_TRUCK}'
+                f'превышает допустимый для перевозки: {self.MAXIMUM_WEIGHT_ONE_TRUCK}',
+                402
             )
 
     def check_for_capacity_in_boxes(self):
@@ -63,13 +64,15 @@ class ValidationMassEggs():
         for cat, quantity in self._quantity_hash_map.items():
             if cat in self.STANDART_CATEGORIES:
                 if quantity % self.ONE_BOX_STANDART:
-                    raise serializers.ValidationError(
-                        f'Указанное количество: {quantity}дес. - не кратно коробке: {self.ONE_BOX_STANDART}дес.'
+                    raise custom_error(
+                        f'Указанное количество: {quantity}дес. - не кратно коробке: {self.ONE_BOX_STANDART}дес.',
+                        402
                     )
             else:
                 if quantity % self.ONE_BOX_cB:
-                    raise serializers.ValidationError(
-                        f'Указанное количество: {quantity}дес. - не кратно коробке для высшей кат.: {self.ONE_BOX_cB}дес.'
+                    raise custom_error(
+                        f'Указанное количество: {quantity}дес. - не кратно коробке для высшей кат.: {self.ONE_BOX_cB}дес.',
+                        402
                     )
 
 

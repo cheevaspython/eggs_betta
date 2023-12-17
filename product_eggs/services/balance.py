@@ -13,13 +13,13 @@ from product_eggs.services.decorators import try_decorator_param
 logger = logging.getLogger(__name__)
 
 entity_data = {
-    'test': {
+    '5612163931': {
         'name': 'Пилигрим',
-        'inn': 'test',
+        'inn': '5612163931',
     },
-    'test1': {
-        'name': 'merc',
-        'inn': 'test2',
+    '5048057438': {
+        'name': 'Меркурий',
+        'inn': '5048057438',
     }
 }
 

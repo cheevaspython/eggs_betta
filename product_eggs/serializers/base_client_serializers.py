@@ -5,7 +5,6 @@ from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs, Logic
 from product_eggs.serializers.balance_serializers import BalanceBaseClientEggsSerializer
 from product_eggs.serializers.contact_person_serializers import ContactPersonEggsSerializer
 from product_eggs.serializers.documents_serializers import DocumentsContractEggsSerializer
-from product_eggs.serializers.entity_serializers import EntityEggsModelSerializer
 from product_eggs.serializers.requisites_serializers import RequisitesEggsModelSerializer
 
 logger = logging.getLogger(__name__)
@@ -17,6 +16,16 @@ class SellerCardEggsDetailSerializer(serializers.ModelSerializer):
     current_contact_persons = ContactPersonEggsSerializer(read_only=True, many=True, source='contact_person')
     manager_name = serializers.SerializerMethodField()
     current_balances = serializers.SerializerMethodField()
+
+    # def get_current_balances(self, instance):
+    #     cur_seller = SellerCardEggs.objects.filter(pk=instance.pk).prefetch_related(
+    #             'cur_balance'
+    #         ).first()
+    #     if cur_seller:
+    #         serializer = BalanceBaseClientEggsSerializer(
+    #             cur_seller.cur_balance.select_related('client_seller').all(), many=True
+    #         )
+    #         return serializer.data
 
     def get_current_balances(self, instance):
         balances = instance.cur_balance.all()
@@ -47,7 +56,6 @@ class SellerCardEggsDetailSerializer(serializers.ModelSerializer):
 
 class SellerCardEggsPlusRequisitesSerializer(serializers.ModelSerializer):
     current_requisites = RequisitesEggsModelSerializer(read_only=True, source='requisites')
-    current_contract = DocumentsContractEggsSerializer(read_only=True, source='documents_contract')
 
     class Meta:
         model = SellerCardEggs
@@ -55,7 +63,7 @@ class SellerCardEggsPlusRequisitesSerializer(serializers.ModelSerializer):
             'inn', 'contact_person', 'comment',
             'requisites', 'current_requisites', 'prod_address_1', 'prod_address_2',
             'prod_address_3', 'prod_address_4', 'prod_address_5', 'documents_contract',
-            'region', 'manager', 'resident', 'link', 'current_contract',
+            'region', 'manager', 'resident', 'link',
         ]
 
 
@@ -95,7 +103,6 @@ class BuyerCardEggsDetailSerializer(serializers.ModelSerializer):
 
 class BuyerCardEggsPlusRequisitesSerializer(serializers.ModelSerializer):
     current_requisites = RequisitesEggsModelSerializer(read_only=True, source='requisites')
-    current_contract = DocumentsContractEggsSerializer(read_only=True, source='documents_contract')
 
     class Meta:
         model = BuyerCardEggs
@@ -103,7 +110,7 @@ class BuyerCardEggsPlusRequisitesSerializer(serializers.ModelSerializer):
             'inn', 'contact_person', 'comment',
             'requisites', 'current_requisites', 'warehouse_address_1', 'warehouse_address_2',
             'warehouse_address_3', 'warehouse_address_4', 'warehouse_address_5', 'documents_contract',
-            'region', 'manager', 'resident', 'link', 'current_contract',
+            'region', 'manager', 'resident', 'link',
         ]
 
 

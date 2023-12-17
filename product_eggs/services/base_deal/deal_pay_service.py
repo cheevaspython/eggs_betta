@@ -1,16 +1,19 @@
 import logging
-from datetime import datetime, timedelta
 
+from datetime import datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 
 from product_eggs.models.base_client import (
     BuyerCardEggs, LogicCardEggs, SellerCardEggs
 )
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.services.base_deal.deal_pay_compare import (
-    compare_UPD_and_payments, compare_payment_and_inital_amount
+    compare_UPD_and_payments, compare_payment_and_inital_amount,
+    sub_upd_amount_if_correct
 )
 from product_eggs.services.data_class import PayOrderDataForSave
+from product_eggs.tasks.deal_status_closer import check_and_close_deal
 
 logger = logging.getLogger(__name__)
 
@@ -70,13 +73,15 @@ class DealPayOrderUPDservice():
             convert_date_UPD = datetime.strptime(date_outgoing_UPD, '%d/%m/%Y').date()
             self.deal.payback_day_for_buyer = convert_date_UPD
 
-    def add_or_replay_deal_debt(self):
+    @transaction.atomic
+    def add_or_replay_deal_debt(self) -> None:
         """
         Обрабатывает вводимые данные.
         """
         match self.data.doc_type:
             case 'UPD_incoming' | 'UPD_outgoing' | 'UPD_logic':
                 if isinstance(self.pay_client, SellerCardEggs | BuyerCardEggs | LogicCardEggs):
+                    self.correct_upd()
                     self.deal = compare_UPD_and_payments(
                         self.deal,
                         self.pay_client,
@@ -84,6 +89,7 @@ class DealPayOrderUPDservice():
                     )
 
             case 'application_contract_logic':
+                self.correct_upd()
                 self.deal.delivery_cost = self.data.pay_quantity
                 self.deal.logic_our_debt_for_app_contract = self.data.pay_quantity
                 self.deal.logic_our_pay_amount -= self.data.pay_quantity
@@ -97,3 +103,19 @@ class DealPayOrderUPDservice():
                     )
             case _:
                 logging.warning('field error in pay services, in type of tmp_json')
+
+    def correct_upd(self) -> None:
+        if self.data.correct:
+            self.deal = sub_upd_amount_if_correct(
+                self.deal,
+                self.pay_client,
+                self.data,
+            )
+
+
+
+
+
+
+
+

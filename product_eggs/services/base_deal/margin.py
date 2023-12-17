@@ -6,10 +6,11 @@ def calculate_margin(instance) -> float:
     Также учитывает НДС.
     """
     from product_eggs.models.base_deal import BaseDealEggsModel
+    from product_eggs.services.base_deal.deal_services import calc_expense_total_for_margin
 
     if isinstance(instance, BaseDealEggsModel):
         if instance.additional_expense:
-            expense_total = instance.additional_expense.expense_total
+            expense_total = calc_expense_total_for_margin(instance.additional_expense)
         else:
             expense_total = 0
 
@@ -71,6 +72,13 @@ def calculate_margin(instance) -> float:
         tax_difference = tax_paid - tax_buyer
 
         margin = margin_tax_free + tax_difference
+
+        try:
+            if cur_pay := instance.additional_expense.logic_pay:
+                margin = margin - cur_pay
+        except AttributeError:
+            pass
+
         return round(margin, 2)
 
     return 0
@@ -107,7 +115,7 @@ def calculate_margin_import(instance) -> float:
 
         delivery_price = instance.delivery_cost
 
-        if instance.additional_expense:
+        if instance.additional_expense: #TODO additional_expense f1 or f2
             production_cost = purchase_price + delivery_price + instance.additional_expense.expense_total
         else:
             production_cost = purchase_price + delivery_price

@@ -1,7 +1,9 @@
 from rest_framework import viewsets, permissions, response, views
 
 from users.models import CustomUser
-from users.serializers import CustomUserSerializer, CheckMasterPasswordSerializer
+from users.serializers import (
+    CustomUserSerializer, CheckMasterPasswordSerializer
+)
 from users.services import master_pass_validate
 
 
@@ -16,10 +18,10 @@ class WhoamiApiView(views.APIView):
 
     def get(self, request):
         response_dict = {
-                "user_id" : request.user.id,
-                "user_role": request.user.role,
-                "user_first_name": request.user.first_name,
-                "user_last_name": request.user.last_name
+            "user_id" : request.user.id,
+            "user_role": request.user.role,
+            "user_first_name": request.user.first_name,
+            "user_last_name": request.user.last_name
         }
         return response.Response(response_dict)
 

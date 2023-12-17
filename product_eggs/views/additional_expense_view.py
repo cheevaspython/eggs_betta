@@ -10,7 +10,9 @@ from product_eggs.serializers.additional_expense_serializers import (
     AdditionalExpenseSerializer
 )
 from product_eggs.models.additional_expense import AdditionalExpenseEggs
-from product_eggs.services.additional_exp_service import parse_additional_tmp_json
+from product_eggs.services.additional_exp_service import (
+    parse_additional_tmp_json, parse_additional_tmp_multi_json
+)
 
 
 class AdditionalExpenseEggsModelViewSet(viewsets.ViewSet):
@@ -34,12 +36,28 @@ class AdditionalExpenseEggsModelViewSet(viewsets.ViewSet):
                     serializer.validated_data):
 
                 serializer.save()
-                instance.expense_detail_json.update(
-                    {str(datetime.today()) : asdict(data_for_save)}
-                )
-                instance.expense_total += float(data_for_save.expense)
+                if data_for_save.logic:
+                    instance.expense_detail_json.update(
+                        {str(datetime.today()) : asdict(data_for_save)}
+                    )
+                    instance.logic_pay = float(data_for_save.expense)
+                else:
+                    instance.expense_detail_json.update(
+                        {str(datetime.today()) : asdict(data_for_save)}
+                    )
+                    if data_for_save.cash:
+                        instance.expense_total_form_2 += float(data_for_save.expense)
+                    else:
+                        instance.expense_total_form_1 += float(data_for_save.expense)
+
                 instance.tmp_json = {}
                 instance.save()
+                return Response(status=status.HTTP_200_OK)
+
+            elif parse_additional_tmp_multi_json(instance, serializer.validated_data):
+                return Response(status=status.HTTP_200_OK)
+            else:
+                serializer.save()
                 return Response(status=status.HTTP_200_OK)
 
         return Response('Wrong tmp_json', status=status.HTTP_400_BAD_REQUEST)

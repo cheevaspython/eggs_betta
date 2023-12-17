@@ -1,6 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
-
-from rest_framework import permissions, serializers, status, filters
+from rest_framework import permissions, status, filters
 from rest_framework.response import Response
 
 from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs, LogicCardEggs
@@ -16,6 +15,7 @@ from product_eggs.serializers.base_client_serializers import (
 )
 from product_eggs.models.custom_model_viewset import CustomModelViewSet, CustomModelPagination
 from product_eggs.permissions.validate_user import eq_requestuser_is_customuser
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 
@@ -41,7 +41,7 @@ class ClientCardModelView(CustomModelViewSet):
             serializer.validated_data['requisites'] = \
                 RequisitesEggs.objects.get(inn=serializer.validated_data['inn'])
         except ObjectDoesNotExist as e:
-            raise serializers.ValidationError('reqisites with current inn does not exists', e)
+            raise custom_error(f'reqisites with current inn does not exists {e}', 433)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -86,7 +86,7 @@ class LogicCardEggsViewSet(ClientCardModelView):
             serializer.validated_data['requisites'] = \
                 RequisitesEggs.objects.get(inn=serializer.validated_data['inn'])
         except ObjectDoesNotExist as e:
-            raise serializers.ValidationError('reqisites with current inn does not exists', e)
+            raise custom_error(f'reqisites with current inn does not exists {e}', 433)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

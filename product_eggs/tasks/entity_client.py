@@ -1,11 +1,8 @@
 import logging
-
 from collections import namedtuple
-
 from celery import shared_task
 
 from general_layout.balance.models.balance import BalanceBaseClient
-
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
 
 logger = logging.getLogger(__name__)
@@ -23,9 +20,9 @@ def change_client_entity_list(
     """
     model_data = namedtuple(
             'model_fields', [
-        'cur_client_model',
-        'path_field',
-        ]
+                'cur_client_model',
+                'path_field',
+            ]
     )
     from product_eggs.models.balance import BalanceBaseClientEggs
 

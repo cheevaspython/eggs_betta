@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+from product_eggs.models.entity import EntityEggs
+
 
 class Role(models.TextChoices):
     manager_sell = '1', 'менеджер продажа'
@@ -30,6 +32,14 @@ class CustomUser(AbstractUser):
     )
     def __str__(self):
         return self.username
+
+
+# class UserPermissionClass(models.TextChoices):
+    ...
+
+
+
+
 
 
 

@@ -1,10 +1,8 @@
 import logging
 
 from django.db.models import F, Q
-
 from djangochannelsrestframework.observer import model_observer
 from djangochannelsrestframework.decorators import action
-
 from channels.db import database_sync_to_async
 
 from product_eggs.models.applications import (
@@ -35,7 +33,6 @@ logger = logging.getLogger(__name__)
 
 
 class SideBarSubConsumer(CustomAPIConsumer):
-    """ws for sidebar"""
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
@@ -142,7 +139,7 @@ class SideBarSubConsumer(CustomAPIConsumer):
 
     @database_sync_to_async
     def get_current_side_bar(self) -> dict | None:
-        if self.auth and self.user:    
+        if self.auth and self.user:    #TODO buyer and seller name abstract class error (how get name)
             serializer_current_user_app_buyer_eggs = ApplicationBuyerEggsSerializerSideBar(
                 ApplicationFromBuyerBaseEggs.objects.select_related(
                     'current_buyer'

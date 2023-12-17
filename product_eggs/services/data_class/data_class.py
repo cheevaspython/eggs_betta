@@ -1,10 +1,7 @@
 from dataclasses import dataclass
-
 from typing import Union
 
 from django.db.models import QuerySet
-
-from rest_framework import serializers
 
 from product_eggs.models.applications import  (
     ApplicationFromBuyerBaseEggs, ApplicationFromSellerBaseEggs
@@ -15,7 +12,7 @@ from product_eggs.models.base_client import (
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel
 from product_eggs.services.data_class.data_class_documents import PrePayOrderDataForSaveMulti
-
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 COMMENT_MODEL_TYPES = (
@@ -26,7 +23,7 @@ DELETE_CLIENT_MODELS = (
     'seller', 'buyer', 'logic'
 )
 ENTITY_BOOK = [
-    'test', 'test1', 'application_contract_logic_entity_empty'
+    '5612163931', '5048057438', 'application_contract_logic_entity_empty'
 ]
 
 
@@ -82,14 +79,15 @@ class AdditionalExpenseData():
     owner_name: str
     owner_id: str | int
     cash: bool
+    logic: bool | None = None
 
     def __post_init__(self):
         try:
             self.expense = float(self.expense)
             self.owner_id = int(self.owner_id)
         except TypeError:
-            raise serializers.ValidationError(
-                'wrong float expens or user id in tmp_json')
+            raise custom_error(
+                'wrong float expens or user id in tmp_json', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -109,7 +107,7 @@ class CommentData():
 
     def __post_init__(self):
         if self.model_type not in COMMENT_MODEL_TYPES:
-            raise serializers.ValidationError('model_type in comment data')
+            raise custom_error('model_type in comment data', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -141,7 +139,7 @@ class TailDataForJsonSave():
 
     def __post_init__(self):
         if self.entity not in ENTITY_BOOK:
-            raise serializers.ValidationError('wrong entity in tmp_json')
+            raise custom_error('wrong entity in tmp_json', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -149,16 +147,34 @@ class TailDataForJsonSave():
 
 @dataclass(slots=True, frozen=True)
 class DeleteJson():
+    """
+    Data for delete
+    """
     json_key: str
     cash: bool
     client_type: str
 
     def __post_init__(self):
         if self.client_type not in DELETE_CLIENT_MODELS:
-            raise serializers.ValidationError('wrong client_type in delete dataclass')
+            raise custom_error('wrong client_type in delete dataclass', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
 
+
+@dataclass(slots=True, frozen=True)
+class GetWageJson():
+    """
+    For get wage field in personalbalance
+    """
+    wage_quantity: float
+    wage_text: str
+
+    def __post_init__(self):
+        if self.wage_quantity <= 0:
+            raise custom_error('wage must be correct', 433)
+
+    def __getitem__(self, item):
+        return getattr(self, item)
 
 

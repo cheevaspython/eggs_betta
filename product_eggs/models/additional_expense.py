@@ -12,8 +12,13 @@ class AdditionalExpenseEggs(AdditionalExpense):
         ordering = ['pk']
 
     def save(self, *args, **kwargs):
+        self.expense_total = (
+          self.expense_total_form_1 +
+          self.expense_total_form_2
+        )
         super().save(*args, **kwargs)
         task_calc_margin(self)
 
     def __str__(self):
         return 'Доп Расход'
+

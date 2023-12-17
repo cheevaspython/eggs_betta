@@ -1,4 +1,4 @@
-from rest_framework import permissions, serializers, response, status
+from rest_framework import permissions, response, status
 
 from product_eggs.models.contact_person import ContactPersonEggs
 from product_eggs.models.custom_model_viewset import CustomModelViewSet

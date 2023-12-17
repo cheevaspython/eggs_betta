@@ -1,11 +1,9 @@
 from datetime import datetime
-
 from typing import Iterator
-
-from django.utils import timezone
-
 from celery import shared_task
 from celery.utils.log import get_task_logger
+
+from django.utils import timezone
 
 from product_eggs.models.applications import (
     ApplicationFromBuyerBaseEggs, ApplicationFromSellerBaseEggs,
@@ -18,15 +16,19 @@ logger = get_task_logger(__name__)
 @shared_task
 def applications_actual_checker() -> None:
     app_seller = ApplicationFromSellerBaseEggs.objects.filter(
-        is_active=True).only('id', 'created_date_time',
-        'edited_date_time', 'await_add_cost', 'owner_id').iterator()
+        is_active=True
+    ).only(
+        'id', 'created_date_time',
+        'edited_date_time', 'await_add_cost', 'owner_id'
+    ).iterator()
     app_buyer = ApplicationFromBuyerBaseEggs.objects.filter(
-        is_active=True).only('id', 'created_date_time',
-        'edited_date_time', 'await_add_cost', 'owner_id').iterator()
-
+        is_active=True
+    ).only(
+        'id', 'created_date_time',
+        'edited_date_time', 'await_add_cost', 'owner_id'
+    ).iterator()
     run_data_checker_for_query(app_seller)
     run_data_checker_for_query(app_buyer)
-
     logger.info('run beat task')
 
 

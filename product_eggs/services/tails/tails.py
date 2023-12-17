@@ -1,12 +1,11 @@
-from datetime import datetime
 import uuid
+from datetime import datetime
 from dataclasses import asdict
 from typing import OrderedDict
+
 from django.db import transaction
 
-from rest_framework import serializers
 from product_eggs.models.balance import BalanceBaseClientEggs
-
 from product_eggs.models.base_client import (
     BuyerCardEggs, LogicCardEggs, SellerCardEggs
 )
@@ -26,6 +25,7 @@ from product_eggs.services.documents.documents_parse_tmp_json import (
 from product_eggs.services.get_anything.try_to_get_models import (
     check_client_type_and_model
 )
+from product_eggs.services.validationerror import custom_error
 
 
 def create_tail_model_to_balance() -> TailsContragentModelEggs:
@@ -163,12 +163,12 @@ def verificate_total_tail_amount_and_pay_quantity(
     try:
         if multitails.cash:
             if multitails.total_pay > instance.current_tail_form_two:
-                raise serializers.ValidationError('pay_quantity sum in OtherPays > tail sum client cash')
+                raise custom_error('pay_quantity sum in OtherPays > tail sum client cash', 433)
         else:
             if multitails.total_pay > instance.current_tail_form_one:
-                raise serializers.ValidationError('pay_quantity sum in OtherPays > tail sum client')
+                raise custom_error('pay_quantity sum in OtherPays > tail sum client', 433)
     except KeyError as e:
-        raise serializers.ValidationError('wrong tail instance', e)
+        raise custom_error(f'wrong tail instance {e}', 433)
 
 
 def tail_return_to_balance_and_del_old(

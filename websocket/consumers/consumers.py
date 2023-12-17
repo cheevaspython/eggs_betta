@@ -1,5 +1,4 @@
 import json
-
 import logging
 
 from djangochannelsrestframework.generics import GenericAsyncAPIConsumer

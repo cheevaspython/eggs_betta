@@ -4,11 +4,10 @@ from django.http import FileResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
-from rest_framework import serializers
-
 from product_eggs.models.documents import (
     DocumentsDealEggsModel, DocumentsContractEggsModel
 )
+from product_eggs.services.validationerror import custom_error
 
 
 class DownloadDocumentsLink():
@@ -32,8 +31,8 @@ class DownloadDocumentsLink():
         try:
             self.pk = int(self.parce_pk_data[0])
             self.title = self.parce_pk_data[1]
-        except ValueError:
-            raise serializers.ValidationError('Wrong pk_data in DownloadDocumentsLink')
+        except ValueError as e:
+            raise custom_error(f'Wrong pk_data in DownloadDocumentsLink {e}', 433)
 
     def _get_doc_contract_instance(self) -> DocumentsContractEggsModel:
         """
@@ -43,9 +42,9 @@ class DownloadDocumentsLink():
             if self.title in self.docs_contract_titles:
                 return DocumentsContractEggsModel.objects.get(pk=self.pk)
             else:
-                raise serializers.ValidationError('Wrong title in DownloadDocumentsLink')
+                raise custom_error('Wrong title in DownloadDocumentsLink', 433)
         except (ValueError, ObjectDoesNotExist) as e:
-            raise serializers.ValidationError('Wrong titile for model in download pk', e)
+            raise custom_error(f'Wrong titile for model in download pk {e}', 433)
 
     def _get_doc_deal_instance(self) -> DocumentsDealEggsModel:
         """
@@ -55,9 +54,9 @@ class DownloadDocumentsLink():
             if self.title in self.docs_deal_titles:
                 return DocumentsDealEggsModel.objects.get(pk=self.pk)
             else:
-                raise serializers.ValidationError('Wrong title in DownloadDocumentsLink')
+                raise custom_error('Wrong title in DownloadDocumentsLink', 433)
         except (ValueError, ObjectDoesNotExist) as e:
-            raise serializers.ValidationError('Wrong titile for model in download pk', e)
+            raise custom_error(f'Wrong titile for model in download pk {e}', 433)
 
     def _get_file_link(self) -> str:
         """
@@ -115,7 +114,7 @@ class DownloadDocumentsLink():
             case 'product_invoice_logic':
                 return str(self._get_doc_deal_instance().product_invoice_logic)
             case _:
-                raise serializers.ValidationError('Wrong title in DownloadDocumentsLink')
+                raise custom_error('Wrong title in DownloadDocumentsLink', 433)
 
     def get_auto_download_response(self) -> FileResponse:
         """
@@ -124,8 +123,8 @@ class DownloadDocumentsLink():
         module_dir = os.path.join(settings.MEDIA_ROOT, self._get_file_link())
         try:
             return FileResponse(open(module_dir, 'rb'), as_attachment=True)
-        except IsADirectoryError:
-            raise serializers.ValidationError('File not found')
+        except IsADirectoryError as e:
+            raise custom_error(f'File not found {e}', 433)
 
 
 

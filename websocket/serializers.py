@@ -1,7 +1,7 @@
 from django.utils import timezone
-
 from rest_framework import serializers
 
+from users.serializers import CustomUserSerializerWs
 from websocket.models import CustomRoom, WsMessage, GeneralRoom, GeneralWsMessage
 
 tz = timezone.get_default_timezone()
@@ -9,13 +9,10 @@ tz = timezone.get_default_timezone()
 
 class MessageWsSerializer(serializers.ModelSerializer):
     friendly_date = serializers.SerializerMethodField()
-    username = serializers.SerializerMethodField()
+    username = serializers.ReadOnlyField(source='username_orm')
 
     def get_friendly_date(self, instance):
         return instance.created_at.astimezone(tz).strftime("%H:%M:%S - %b %d %Y")
-
-    def get_username(self, instance):
-        return instance.user.username
 
     class Meta:
         model = WsMessage
@@ -30,11 +27,17 @@ class MessageWsSerializer(serializers.ModelSerializer):
 class CustomRoomSerializer(serializers.ModelSerializer):
     users_names = serializers.SerializerMethodField()
 
-    def get_users_names(self, instance) -> list[str]:
-        return_username_list = list()
-        for user in instance.current_users.all():
-            return_username_list.append([user.username, user.first_name, user.last_name, user.id, user.role])
-        return return_username_list
+    def get_users_names(self, instance):
+        cur_model = CustomRoom.objects.filter(pk=instance.pk).select_related(
+                'host', 'zakrep_model'
+            ).prefetch_related(
+                'current_users'
+            ).first()
+        if cur_model:
+            serializer = CustomUserSerializerWs(
+                cur_model.current_users.all(), many=True
+            )
+            return serializer.data
 
     class Meta:
         model = CustomRoom

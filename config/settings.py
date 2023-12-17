@@ -100,7 +100,6 @@ CHANNEL_LAYERS = {
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'users.authenticate.CookieBasedJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
     ),
@@ -134,13 +133,6 @@ SIMPLE_JWT = {
   'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
   'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
   'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-
-  # 'AUTH_COOKIE_ACCESS':'access_token',
-  # 'AUTH_COOKIE_REFRESH':'refresh_token',
-  # 'AUTH_COOKIE_SECURE': False,
-  # 'AUTH_COOKIE_HTTP_ONLY' : True,
-  # 'AUTH_COOKIE_PATH': '/',
-  # 'AUTH_COOKIE_SAMESITE': 'None', #Strict
 }
 
 CSRF_USE_SESSIONS = False

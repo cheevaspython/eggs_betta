@@ -1,11 +1,9 @@
 from typing import Any
-
 from dataclasses import dataclass
-
-from rest_framework import serializers
 
 from product_eggs.models.documents import DocumentsDealEggsModel
 from product_eggs.models.tails import TailsContragentModelEggs
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 CLIENT_TYPES = [
@@ -59,7 +57,7 @@ LOGIC_DOCS = [
 ]
 
 ENTITY_BOOK = [
-    'test', 'test1', 'application_contract_logic_entity_empty'
+    '5612163931', '5048057438', 'application_contract_logic_entity_empty'
 ]
 
 
@@ -77,19 +75,20 @@ class PrePayOrderDataForSave():
     entity: str
     cash: bool
     force: bool = False
+    correct: bool = False
 
     def __post_init__(self):
         if self.doc_type == 'application_contract_logic':
             self.entity = 'application_contract_logic_entity_empty'
         else:
             if self.entity not in ENTITY_BOOK:
-                raise serializers.ValidationError('wrong entity in tmp_json')
+                raise custom_error('wrong entity in tmp_json', 433)
         if self.doc_type not in DOCUMENT_TYPES:
-            raise serializers.ValidationError('wrong doc type in tmp_json')
+            raise custom_error('wrong doc type in tmp_json', 433)
         if self.client_type not in CLIENT_TYPES:
-            raise serializers.ValidationError('wrong client type in tmp_json')
+            raise custom_error('wrong client type in tmp_json', 433)
         if self.doc_type not in TMP_DOCTYPE_BOOK[self.client_type]:
-            raise serializers.ValidationError('wrong doc type for current client type in tmp_json')
+            raise custom_error('wrong doc type for current client type in tmp_json', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -128,17 +127,18 @@ class PayOrderDataForSave():
     documents_id: str
     client_type: str
     force: bool = False
+    correct: bool = False
 
     def __post_init__(self):
         if self.entity not in ENTITY_BOOK:
-            raise serializers.ValidationError('wrong entity in tmp_json')
+            raise custom_error('wrong entity in tmp_json', 433)
         if self.doc_type not in DOCUMENT_TYPES:
-            raise serializers.ValidationError('wrong doc type in tmp_json')
+            raise custom_error('wrong doc type in tmp_json', 433)
         if self.client_type not in CLIENT_TYPES:
-            raise serializers.ValidationError('wrong client type in tmp_json')
+            raise custom_error('wrong client type in tmp_json', 433)
         else:
             if self.doc_type not in TMP_DOCTYPE_BOOK[self.client_type]:
-                raise serializers.ValidationError('wrong doc type for current client type in tmp_json')
+                raise custom_error('wrong doc type for current client type in tmp_json', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -157,8 +157,8 @@ class OtherPayTmpData():
     def __post_init__(self):
         from product_eggs.services.documents.documents_parse_tmp_json import DealDocumentsPaymentParser
         if not isinstance(self.current_pay, DealDocumentsPaymentParser):
-            raise serializers.ValidationError(
-                'wrong DealDocumentsPaymentParser model in Otherpays data_class')
+            raise custom_error(
+                'wrong DealDocumentsPaymentParser model in Otherpays data_class', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -177,11 +177,11 @@ class OtherPays():
     def __post_init__(self):
         try:
             if not self.pay_quantity:
-                raise serializers.ValidationError(
-                    'Wrong pay_quantity in otherpays, pay_quantity cant be false')
+                raise custom_error(
+                    'Wrong pay_quantity in otherpays, pay_quantity cant be false', 433)
             self.pay_quantity = float(self.pay_quantity)
         except KeyError as e:
-            raise serializers.ValidationError('Wrong pay_quantity type in otherpays', e)
+            raise custom_error(f'Wrong pay_quantity type in otherpays {e}', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -206,11 +206,11 @@ class PrePayOrderDataForSaveMulti():
 
     def __post_init__(self):
         if self.entity not in ENTITY_BOOK:
-            raise serializers.ValidationError('wrong entity in tmp_json')
+            raise custom_error('wrong entity in tmp_json', 433)
         if self.doc_type not in DOCUMENT_TYPES:
-            raise serializers.ValidationError('wrong doc type in tmp_json')
+            raise custom_error('wrong doc type in tmp_json', 433)
         if self.entity not in ENTITY_BOOK:
-            raise serializers.ValidationError('wrong entity in tmp_json')
+            raise custom_error('wrong entity in tmp_json', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -235,7 +235,7 @@ class PayOrderDataForSaveMulti():
 
     def __post_init__(self):
         if self.entity not in ENTITY_BOOK:
-            raise serializers.ValidationError('wrong entity in tmp_json')
+            raise custom_error('wrong entity in tmp_json', 433)
         try:
             self.total_amount = float(self.total_amount)
             if self.tail_form_one:
@@ -243,16 +243,16 @@ class PayOrderDataForSaveMulti():
             if self.tail_form_two:
                 self.tail_form_two = float(self.tail_form_two)
         except TypeError:
-            raise serializers.ValidationError('PayOrderDataForSaveMulti: wrong tail form ')
+            raise custom_error('PayOrderDataForSaveMulti: wrong tail form', 433)
         try:
             if isinstance(self.other_pays, dict):
                 self.other_pays = [OtherPays(**self.other_pays)]
             elif isinstance(self.other_pays, list):
                 self.other_pays = [OtherPays(**other_pay) for other_pay in self.other_pays]
             else:
-                raise serializers.ValidationError('PayOrderDataForSaveMulti: wrong other_pays type')
+                raise custom_error('PayOrderDataForSaveMulti: wrong other_pays type', 433)
         except TypeError:
-            raise serializers.ValidationError('PayOrderDataForSaveMulti: wrong other_pays ')
+            raise custom_error('PayOrderDataForSaveMulti: wrong other_pays', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -272,7 +272,7 @@ class PayOrderDataForSaveMultiClear():
 
     def __post_init__(self):
         if self.entity not in ENTITY_BOOK:
-            raise serializers.ValidationError('wrong entity in tmp_json')
+            raise custom_error('wrong entity in tmp_json', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -291,15 +291,15 @@ class MultiTails():
 
     def __post_init__(self):
         if self.entity not in ENTITY_BOOK:
-            raise serializers.ValidationError('wrong entity in tmp_json')
+            raise custom_error('wrong entity in tmp_json', 433)
         if self.doc_type not in DOCUMENT_TYPES:
-            raise serializers.ValidationError('wrong doc type in tmp_json')
+            raise custom_error('wrong doc type in tmp_json', 433)
         try:
             self.total_pay = sum([float(other['pay_quantity']) for other in self.other_pays])
             self.other_pays = [OtherPays(**other_pay) for other_pay in self.other_pays]
         except TypeError as e:
-            raise serializers.ValidationError(
-                'wrong data in MultiTails dataclass', e)
+            raise custom_error(
+                f'wrong data in MultiTails dataclass {e}', 433)
 
     def __getitem__(self, item):
         return getattr(self, item)

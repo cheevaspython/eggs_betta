@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
+
 from django.db import transaction
-from rest_framework import serializers
 
 from product_eggs.models.tails import TailsContragentModelEggs
 from product_eggs.services.balance import get_balance_for_tail
@@ -12,9 +12,11 @@ from product_eggs.services.documents.documents_get import DataNumberJsonSaver
 from product_eggs.services.get_anything.try_to_get_models import (
     get_client_for_tail_pk, return_client_type
 )
-from product_eggs.services.tails import transaction_tails_data
+from product_eggs.services.tails.tails import (
+    transaction_tails_data, verificate_total_tail_amount_and_pay_quantity
+)
 from product_eggs.services.data_class.data_class_documents import MultiTails
-from product_eggs.services.tails import verificate_total_tail_amount_and_pay_quantity
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 logger = logging.getLogger(__name__)
@@ -33,8 +35,7 @@ class ComparePayQuantinyAndTail():
         try:
             self.multi_tails = MultiTails(**instance.multi_tails)
         except TypeError as e:
-            raise serializers.ValidationError('wrong multi_tails documents in recoursia', e)
-        # print(self.multi_tails.entity, type(self.multi_tails.entity))
+            raise custom_error(f'wrong multi_tails documents in recoursia {e}', 433)
         self.instance = instance
         verificate_total_tail_amount_and_pay_quantity(self.instance, self.multi_tails)
         self.user = user

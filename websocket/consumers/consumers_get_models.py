@@ -2,12 +2,9 @@ import logging
 
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-
 from djangochannelsrestframework.observer import model_observer
 from djangochannelsrestframework.decorators import action
-
 from channels.db import database_sync_to_async
-from rest_framework import serializers
 
 from product_eggs.models.additional_expense import AdditionalExpenseEggs
 from product_eggs.models.applications import (
@@ -34,10 +31,9 @@ from product_eggs.services.base_deal.db_orm import (
     get_base_deal_orm_request, get_base_deal_orm_request_param
 )
 from product_eggs.services.get_anything.try_to_get_models import get_client_for_inn
-
+from product_eggs.services.validationerror import custom_error
 from users.serializers import CustomUserSerializer
 from users.models import CustomUser
-
 from websocket.consumers.consumers import CustomAPIConsumer
 from websocket.services.decorator import ws_auth
 
@@ -233,8 +229,8 @@ class AllModelsSubConsumer(CustomAPIConsumer):
                     serializer_comp_deal = get_base_deal_orm_request_param(4, model_pk)
                     return serializer_comp_deal.data
                 case _:
-                    raise serializers.ValidationError('wrong model name in ws consumer get model')
-        raise serializers.ValidationError('ws get_models error in auth or request user')
+                    raise custom_error('wrong model name in ws consumer get model', 433)
+        raise custom_error('ws get_models error in auth or request user', 433)
 
     @action()
     @ws_auth
@@ -254,6 +250,7 @@ class AllModelsSubConsumer(CustomAPIConsumer):
         if self.auth and self.user:
             if client := get_client_for_inn(client_inn, client_type):
                 return serializers_clients[client.__class__.__name__](client).data
+
 
 
 

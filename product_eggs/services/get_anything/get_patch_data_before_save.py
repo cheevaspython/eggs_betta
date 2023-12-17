@@ -21,6 +21,9 @@ def get_object_from_patch_data(obj_queryset, parse_id: int) -> Any:
 
 
 def get_half_link_for_save(document_name: str) -> str:
+    """
+    Формирует ссылку
+    """
     return(f'uploads/deal_docs/{document_name}/{datetime.today().year}/{datetime.today().month}/' +
         f'{datetime.today().day}/{datetime.today().hour}-{datetime.today().minute}-{datetime.today().second}/')
 

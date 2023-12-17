@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict
 from datetime import datetime
 from typing import Union
-from rest_framework import serializers
 
 from product_eggs.models.documents import DocumentsContractEggsModel, DocumentsDealEggsModel
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs

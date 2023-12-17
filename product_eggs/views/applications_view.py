@@ -47,11 +47,13 @@ class ApplicationSellerEggsViewSet(CustomModelViewSet):
         serializer.save()
 
     def list(self, request, *args, **kwargs):
-        applications_seller_is_active = ApplicationFromSellerBaseEggs.objects.filter(
-            is_active=True).select_related(
-            'current_seller', 'owner').select_related(
-            'current_seller__requisites', 'current_seller__documents_contract'
-        ).prefetch_related('current_seller__contact_person')
+        applications_seller_is_active = ApplicationFromSellerBaseEggs.objects.filter(is_active=True).select_related(
+            'current_seller', 'owner', 'comment_json',
+            'current_seller__requisites', 'current_seller__documents_contract',
+            'current_seller__manager',
+        ).prefetch_related(
+            'current_seller__contact_person', 'current_seller__cur_balance'
+        )
         page = self.paginate_queryset(applications_seller_is_active)
         if page is not None:
             serializer = ApplicationSellerEggsDetailSerializer(
@@ -115,9 +117,11 @@ class ApplicationBuyerEggsViewSet(CustomModelViewSet):
 
     def list(self, request, *args, **kwargs):
         applications_buyer_is_active = ApplicationFromBuyerBaseEggs.objects.filter(
-            is_active=True).select_related('current_buyer', 'owner').select_related(
+            is_active=True
+        ).select_related(
+            'current_buyer', 'owner', 'current_buyer__manager', 'comment_json',
             'current_buyer__requisites', 'current_buyer__documents_contract'
-        ).prefetch_related('current_buyer__contact_person')
+        ).prefetch_related('current_buyer__contact_person', 'current_buyer__cur_balance')
         page = self.paginate_queryset(applications_buyer_is_active)
         if page is not None:
             serializer = ApplicationBuyerEggsDetailSerializer(

@@ -16,6 +16,33 @@ class BalanceClient(ABC):
         '''
 
 
+# class MultiPayOrderBalance(BalanceClient):
+#     '''
+#     Изменяет баланс клиента при общем платежном поручении.
+#     '''
+#     def __init__(self,
+#             pay_client: SellerCardEggs | BuyerCardEggs | LogicCardEggs,
+#             money_amount: float):
+#
+#         self.pay_client = pay_client
+#         self.money_amount = money_amount
+#
+#     def add_money_amount_for_buyer_form(self, cash: bool = False) -> None:
+#
+#         if isinstance(self.pay_client, BuyerCardEggs):
+#
+#             cur_balance = get_cur_balance(self.pay_client)
+#             if cash:
+#                 cur_balance.balance.balance_form_two += self.money_amount
+#                 cur_balance.balance.save()
+#             else:
+#                 cur_balance.balance.balance_form_one += self.money_amount
+#                 cur_balance.balance.save()
+#
+#     def __repr__(self) -> str:
+#         return f'{type(self).__name__}'
+
+
 class BaseBalanceAbstract(BalanceClient):
     '''
     Базовый абстрактный класс по работе с балансом клиента.

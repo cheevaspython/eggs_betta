@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from typing import OrderedDict
-from rest_framework import serializers
+
 from django.core.exceptions import ObjectDoesNotExist
 
 from product_eggs.models.applications import (
@@ -12,10 +12,9 @@ from product_eggs.serializers.applications_serializers import (
 )
 from product_eggs.serializers.base_deal_serializers import BaseDealEggsSerializer
 from product_eggs.models.base_deal import BaseDealEggsModel
-from product_eggs.models.comment import CommentEggs
 from product_eggs.services.data_class import CommentData
 from product_eggs.services.decorators import try_decorator_param
-
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 logger = logging.getLogger(__name__)
@@ -48,8 +47,8 @@ def get_instance_for_comment(
             return instance
 
     except (TypeError, ObjectDoesNotExist) as e:
-        raise serializers.ValidationError(
-            'wrong model_id or model_type in tmp_json comment', e)
+        raise custom_error(
+            f'wrong model_id or model_type in tmp_json comment {e}', 433)
 
 
 def get_log_to_comment(data_for_save: CommentData) -> dict[str, dict]:
@@ -73,5 +72,5 @@ def get_log_to_comment(data_for_save: CommentData) -> dict[str, dict]:
         return log_data
     else:
         logging.warning('get_instance_for_comment error')
-        raise serializers.ValidationError('get_instance_for_comment error')
+        raise custom_error('get_instance_for_comment error', 433)
 

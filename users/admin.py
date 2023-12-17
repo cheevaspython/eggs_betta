@@ -9,7 +9,7 @@ from users.models import CustomUser
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
-    model = CustomUser
+    model : CustomUser
     list_display = ['username', 'role']
     fieldsets = (
         (None, {"fields": ("username", "password")}),

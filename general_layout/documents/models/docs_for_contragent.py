@@ -17,6 +17,10 @@ class DocumentsContragentModel(models.Model):
         blank=True,
         default=dict, verbose_name='contract_links',
     )
+    docs_for_edo = models.BooleanField(
+        editable=True, default=False,
+        verbose_name='Документооборот по ЭДО',
+    )
     tmp_json_multi_pay_order = models.JSONField(
         blank=True,
         default=dict, verbose_name='tmp_json_multy_pay_order',

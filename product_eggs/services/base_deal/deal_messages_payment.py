@@ -4,7 +4,9 @@ from product_eggs.models.base_client import (
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.entity import EntityEggs
 from product_eggs.services.data_class.data_class import TailDataForJsonSave
-from product_eggs.services.data_class.data_class_documents import PayOrderDataForSave, PayOrderDataForSaveMultiClear
+from product_eggs.services.data_class.data_class_documents import (
+    PayOrderDataForSave, PayOrderDataForSaveMultiClear
+)
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from users.models import CustomUser
 
@@ -135,8 +137,8 @@ def construct_error_text(
     return(
         f"<<{entity_name}>> У сделки №{deal_pk}, сумма {payment_type} составляет " +
         f"- {abs(tmp_limit)} ₽., {enrolled}. " +
-        f"Вы вностите {pay_amount}, разница составляет " +
-        f"{abs(delta)} ₽., проверьте данные!")
+        f"Вы вностите {pay_amount} ₽., разница составляет " +
+        f"{abs(delta)} ₽., при подтверждении операции разница будет зачислена на баланс.")
 
 
 def construct_close_debt_text(

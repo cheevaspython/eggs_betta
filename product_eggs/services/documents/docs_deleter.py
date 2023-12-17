@@ -5,8 +5,6 @@ from typing import OrderedDict
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
-from rest_framework import serializers
-
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.services.base_deal.deal_messages_payment import data_num_json_canceled_send_message
@@ -18,6 +16,7 @@ from product_eggs.services.data_class.data_class_documents import (
     PayOrderDataForSave, PayOrderDataForSaveMultiClear
 )
 from product_eggs.services.get_anything.try_to_get_models import get_client_for_doc_contract
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 logger = logging.getLogger(__name__)
@@ -63,14 +62,14 @@ class JsonDataDeleter():
         try:
             doc_pk = int(self.doc_contract_pk)
         except ValueError as e:
-            raise serializers.ValidationError('wrong pk data, cant convert to integer', e)
+            raise custom_error(f'wrong pk data, cant convert to integer {e}', 433)
         try:
             self.cur_doc_cont: DocumentsContractEggsModel  = DocumentsContractEggsModel.objects.get(pk=doc_pk)
             self.client: SellerCardEggs | BuyerCardEggs | LogicCardEggs = \
                 get_client_for_doc_contract(self.cur_doc_cont, self.delete_data.client_type)
         except (KeyError, AttributeError, ObjectDoesNotExist) as e:
             logging.debug('delete json error, wrong doc type or client', e)
-            raise serializers.ValidationError('cant get doc_contract or client for delete')
+            raise custom_error('cant get doc_contract or client for delete', 433)
 
     def construct_contract_models_book(self) -> dict:
         """
@@ -121,14 +120,14 @@ class JsonDataDeleter():
         if self._finded_jsons:
             self.entity_inn = self._finded_jsons[0].cur_json.entity
         else:
-            raise serializers.ValidationError('finded json for key -> empty. Doc contragent havent jsons with cur key')
+            raise custom_error('finded json for key -> empty. Doc contragent havent jsons with cur key', 433)
 
     def _get_cur_balance(self) -> None:
         try:
             self.current_balance = self.client.cur_balance.get(entity=self.entity_inn)
             self.tail = self.current_balance.tails
         except (KeyError, AttributeError, ObjectDoesNotExist):
-            raise serializers.ValidationError(f'cant get current balance for client {self.client}, entity {self.entity_inn}')
+            raise custom_error(f'cant get current balance for client {self.client}, entity {self.entity_inn}', 433)
 
     def _get_all_jsons(self) -> None:
         """

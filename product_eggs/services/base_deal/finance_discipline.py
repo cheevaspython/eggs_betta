@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta, date
-from rest_framework import serializers
 
 from product_eggs.models.base_deal import BaseDealEggsModel
-
+from product_eggs.services.validationerror import custom_error
 
 
 class FinanceDiscipline():
@@ -46,7 +45,7 @@ class FinanceDiscipline():
                 else:
                     self.data_json: dict = self.deal.documents.data_number_json_cash
             case _:
-                raise serializers.ValidationError('wrong client type in FinanceDiscipline')
+                raise custom_error('wrong client type in FinanceDiscipline', 433)
 
     def _python_finance_discipline(self) -> str:
         if self.data_json:
@@ -58,7 +57,7 @@ class FinanceDiscipline():
                 elif i['client_type'] == self.client_type and i['doc_type'] == self.clients_payments_book['multi']:
                     self.json_payments_list.append(i)
             if len(self.json_payments_list) == 0:
-                raise serializers.ValidationError('python_finance_discipline error in json.keys')
+                raise custom_error('python_finance_discipline error in json.keys', 433)
             elif len(self.json_payments_list) == 1:
                 date_json = self._convert_str_to_datetime(self.json_payments_list[0]['date'])
             else:
@@ -72,10 +71,10 @@ class FinanceDiscipline():
                 case 'seller':
                     delta_interval = self._get_interval(self.deal.payback_day_for_us_logic, date_json)
                 case _:
-                    raise serializers.ValidationError('wrong client type in FinanceDiscipline')
+                    raise custom_error('wrong client type in FinanceDiscipline', 433)
             return self._compare_timedelta(delta_interval)
         else:
-            raise serializers.ValidationError('error json data in FinanceDiscipline')
+            raise custom_error('error json data in FinanceDiscipline', 433)
 
     def _compare_timedelta(self, delta_interval: timedelta) -> str:
         green: list[int] = [-1, 0, 1]
@@ -86,7 +85,7 @@ class FinanceDiscipline():
         elif delta_interval.days > 1:
             return 'orange'
         else:
-            raise serializers.ValidationError('FinanceDiscipline nevedoma oshibka UHADi')
+            raise custom_error('FinanceDiscipline nevedoma oshibka UHADi', 433)
 
     def _convert_str_to_datetime(self, json_str: str) -> date:
         return datetime.strptime(json_str,'%d/%m/%Y').date()

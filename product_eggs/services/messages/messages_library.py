@@ -1,7 +1,5 @@
 from typing import Union
 
-from rest_framework import serializers
-
 from product_eggs.models.applications import ApplicationFromBuyerBaseEggs, \
     ApplicationFromSellerBaseEggs
 from product_eggs.services.data_class import BaseMessageForm
@@ -9,6 +7,7 @@ from product_eggs.services.messages.create_messages import MessagesCreator
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.base_client import BuyerCardEggs, SellerCardEggs, \
     LogicCardEggs
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 
@@ -207,8 +206,8 @@ class MessageLibrarrySend():
                 message = MessagesCreator(base_model_library_status_deal[self.action])
                 message.create_message()
             else:
-                raise serializers.ValidationError(
-                    f'deal model: {self.model}, havent relation with deal_docs!')
+                raise custom_error(
+                    f'deal model: {self.model}, havent relation with deal_docs!', 433)
 
     def send_base_model_book(self):
         if isinstance(self.model, BaseDealEggsModel) and self.model.owner:

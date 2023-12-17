@@ -2,7 +2,7 @@ from collections import OrderedDict
 from dataclasses import asdict
 from datetime import datetime
 
-from rest_framework import status, viewsets, serializers
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -46,6 +46,7 @@ from product_eggs.services.logic_hide_fields import  (
 )
 from product_eggs.services.validation.validate_fields import check_for_date_and_validate_them
 from product_eggs.services.validation.validation_of_mass_egg import ValidationMassEggs
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 
@@ -78,7 +79,9 @@ class BaseDealModelViewSet(viewsets.ViewSet):
             additional_expense_serializer.is_valid(raise_exception=True)
 
             if isinstance(additional_expense_serializer.validated_data, OrderedDict):
-                serializer.validated_data['additional_expense'] = expence_create_new_model(additional_expense_serializer.validated_data)
+                serializer.validated_data['additional_expense'] = expence_create_new_model(
+                    additional_expense_serializer.validated_data
+                )
             else:
                 serializer.validated_data['additional_expense'] = expence_create_new_model()
 
@@ -92,7 +95,7 @@ class BaseDealModelViewSet(viewsets.ViewSet):
             serializer.validated_data['comment_json'] = new_comment_model
             serializer.save()
         else:
-            raise serializers.ValidationError('wrong data in create calc serializer error')
+            raise custom_error('wrong data in create calc serializer error', 433)
 
         instance = self.queryset.get(pk=serializer.data['id'])
         message = MessageLibrarrySend('confirm_new_calc', instance)
@@ -220,7 +223,9 @@ class BaseDealModelViewSet(viewsets.ViewSet):
             eq_requestuser_is_customuser(self.request.user))
         instance = BaseDealEggsModel.objects.get(pk=pk)
         if request.data['entity'] == None:
-            raise serializers.ValidationError('Для создания сделки необходимо добавить платежное Юр. лицо')
+            raise custom_error('Для создания сделки необходимо добавить платежное Юр. лицо')
+        #save deal manager
+        request.data['deal_manager'] = self.request.user
         check_pre_status_for_create(instance, 2)
         serializer = BaseDealEggsSerializer(
             instance, data=request.data, partial=True)
@@ -297,9 +302,9 @@ class BaseDealModelViewSet(viewsets.ViewSet):
                 base_deal_edit_saver(instance, serializer.data, request.user)
                 return Response(status=status.HTTP_200_OK)
             else:
-                serializers.ValidationError('Нельзя редактировать сделку без комментария!!')
-        except KeyError as e:
-            raise serializers.ValidationError('Нельзя редактировать сделку без комментария!', e)
+                raise custom_error('Нельзя редактировать сделку без комментария!!')
+        except KeyError:
+            raise custom_error('Нельзя редактировать сделку без комментария!')
 #
     @action(detail=True, methods=['patch'])
     def patch_deal_no_comment(self, request, pk=None) -> Response | None:

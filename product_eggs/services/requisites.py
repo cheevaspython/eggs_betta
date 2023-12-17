@@ -1,8 +1,7 @@
 from typing import OrderedDict
 
-from rest_framework import serializers
-
 from product_eggs.models.requisites import RequisitesEggs
+from product_eggs.services.validationerror import custom_error
 
 
 def create_requisites_model(data: OrderedDict) -> RequisitesEggs:
@@ -10,7 +9,7 @@ def create_requisites_model(data: OrderedDict) -> RequisitesEggs:
     Создает новую модель RequisitesEggs из данных.
     """
     try:
-        new_requisites, created = RequisitesEggs.objects.get_or_create(
+        new_requisites, _ = RequisitesEggs.objects.get_or_create(
             general_manager=data['general_manager'], inn=data['inn'], kpp=data['kpp'],
             bank_name=data['bank_name'], bic_bank=data['bic_bank'], cor_account=data['cor_account'],
             customers_pay_account=data['customers_pay_account'], legal_address=data['legal_address'],
@@ -21,7 +20,7 @@ def create_requisites_model(data: OrderedDict) -> RequisitesEggs:
 
     except Exception as e:
         print('error requisites get_or_create -> base_client', e)
-        raise serializers.ValidationError(e)
+        raise custom_error(f'error requisites get_or_create -> base_client {e}', 433)
 
 
 def create_requisites_model_from_exel(
@@ -60,5 +59,4 @@ def create_requisites_model_from_exel(
         phone_with_out_code=phone_with_out_code,
     )
     return (cur_requisites, created,)
-
 

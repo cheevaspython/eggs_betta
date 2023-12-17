@@ -7,7 +7,7 @@ from product_eggs.routers import (
     documents_router, base_deal_router, additional_expense_router,
     balance_router, download_router, requisites_router, tails_router,
     guest_card_eggs_router, comments_router, contact_person_router,
-    balance_model_router
+    balance_model_router, personal_area_router
 )
 from product_eggs.views.messages_view import RequestUserMessage
 from product_eggs.views.left_sidebar_view import LeftBarEggsViewSet
@@ -23,6 +23,7 @@ urlpatterns = [
 
     path('balance/', include(balance_router.urls)),
     path('balance_model/', include(balance_model_router.urls)),
+    path('personal_balance/', include(personal_area_router.urls)),
 
     path('application_from_seller/', include(application_from_seller_router.urls)),
     path('application_from_buyer/', include(application_from_buyer_router.urls)),

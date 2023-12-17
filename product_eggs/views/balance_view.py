@@ -104,10 +104,6 @@ class BalanceEggsViewSet(viewsets.ViewSet):
                     'requisites', 'manager', 'guest', 'documents_contract'
                 ).prefetch_related(
                     'entitys'
-                # ).prefetch_related(
-                #     Prefetch('cur_balance', queryset=BalanceBaseClientEggs.objects.filter(
-                #         entity__inn=cur_entity.inn
-                #     )
                 ).prefetch_related(
                     Prefetch(
                         'basedealeggsmodel_set', queryset=BaseDealEggsModel.objects.filter(

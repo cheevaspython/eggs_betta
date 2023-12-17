@@ -12,6 +12,7 @@ from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.comment import CommentEggs
 from product_eggs.models.entity import EntityEggs
 from product_eggs.models.messages import MessageToUserEggs
+from product_eggs.models.personal_area import PersonalSalaryBalanceEggs
 from product_eggs.models.requisites import RequisitesEggs
 from product_eggs.models.documents import (
     DocumentsDealEggsModel, DocumentsContractEggsModel
@@ -122,6 +123,6 @@ admin.site.register(
             OriginsDealEggs, DocumentsContractEggsModel,
             TailsContragentModelEggs, CommentEggs,
             ContactPersonEggs, BalanceBaseClientEggs,
-            EntityEggs
+            EntityEggs, PersonalSalaryBalanceEggs
         ]
 )

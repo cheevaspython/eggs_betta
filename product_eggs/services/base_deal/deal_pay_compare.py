@@ -2,7 +2,6 @@ import uuid
 import logging
 from datetime import datetime
 from dataclasses import asdict
-from rest_framework import serializers
 
 from product_eggs.models.base_client import (
     BuyerCardEggs, LogicCardEggs, SellerCardEggs
@@ -14,7 +13,8 @@ from product_eggs.services.base_deal.deal_messages_payment import (
     delta_UPD_send_message
 )
 from product_eggs.services.data_class.data_class_documents import PayOrderDataForSave
-from product_eggs.services.tails import create_tail_model_to_balance
+from product_eggs.services.tails.tails import create_tail_model_to_balance
+from product_eggs.services.validationerror import custom_error
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def compare_payment_and_inital_amount(
     if instance.entity:
         cur_balance = get_cur_balance(instance.entity, client)
     else:
-        raise serializers.ValidationError(f'base deal: {instance.pk} field entity -> None! pay error')
+        raise custom_error(f'base deal: {instance.pk} field entity -> None! pay error', 433)
 
     if instance.__dict__[UPD_dict[client.__class__.__name__]]:
         #если УПД уже загружена
@@ -109,7 +109,7 @@ def compare_payment_and_inital_amount(
                     )
                     return instance
             else:
-                raise serializers.ValidationError(
+                raise custom_error(
                     construct_error_text(
                         instance.pk,
                         text_client_dict[client.__class__.__name__][0],
@@ -119,7 +119,7 @@ def compare_payment_and_inital_amount(
                             abs(instance.__dict__[pay_dict[client.__class__.__name__]])),
                         delta,
                         data_for_save.entity,
-                        )
+                        ), 434
                     )
         else:
             delta_compare_and_send_message(
@@ -135,9 +135,7 @@ def compare_payment_and_inital_amount(
     else:
         #если УПД не загружена, сравнение с суммой продукции (или примерной ценой доставки)
         #за вычетом пп
-        if isinstance(client, LogicCardEggs):
-            inital_payments_amount = instance.delivery_cost
-        elif isinstance(client, SellerCardEggs):
+        if isinstance(client, SellerCardEggs):
             inital_payments_amount = (
                 instance.cB_white*instance.seller_cB_white_cost +
                 instance.cB_cream*instance.seller_cB_cream_cost +
@@ -179,11 +177,14 @@ def compare_payment_and_inital_amount(
             logging.warning('pay_service_wrong_inn_client, inital_amount = 0')
             inital_payments_amount = 0
 
-
+        #delta for buyer and seller
         payments_sub = inital_payments_amount - \
             abs(instance.__dict__[pay_dict[client.__class__.__name__]])
-
         delta = payments_sub - data_for_save.pay_quantity
+
+        #delta for logic
+        if isinstance(client, LogicCardEggs):
+            delta = abs(instance.logic_our_pay_amount) - data_for_save.pay_quantity
 
         if delta < 0:
             if data_for_save['force']:
@@ -239,7 +240,7 @@ def compare_payment_and_inital_amount(
                     )
                     return instance
             else:
-                raise serializers.ValidationError(
+                raise custom_error(
                     construct_error_text(
                         instance.pk,
                         text_client_dict[client.__class__.__name__][2],
@@ -248,7 +249,7 @@ def compare_payment_and_inital_amount(
                         instance.__dict__[pay_dict[client.__class__.__name__]],
                         delta,
                         data_for_save.entity,
-                        )
+                        ), 434
                     )
         else:
             delta_compare_and_send_message(
@@ -289,12 +290,12 @@ def compare_UPD_and_payments(
     if instance.entity:
         cur_balance = get_cur_balance(instance.entity, client)
     else:
-        raise serializers.ValidationError(f'base deal: {instance.pk} field entity -> None! pay error')
+        raise custom_error(f'base deal: {instance.pk} field entity -> None! pay error', 433)
 
     if instance.__dict__[UPD_dict[client.__class__.__name__]]:
-        raise serializers.ValidationError(
+        raise custom_error(
             f"У сделки №{instance.pk}, УПД уже загружен. " +
-            "Проверьте введенные данные!"
+            'Проверьте введенные данные! \n Если это корректирующий УПД нажмите "Подтвердить"', 436
         )
     else:
         delta = instance.__dict__[pay_dict[client.__class__.__name__]] - data_for_save.pay_quantity
@@ -306,7 +307,7 @@ def compare_UPD_and_payments(
                 date_save = datetime.strptime(data_for_save.date,'%d/%m/%Y')
                 instance.__dict__[dates_dict[client.__class__.__name__]] = date_save.strftime("%Y-%m-%d")
             except (TypeError, KeyError) as e:
-                raise serializers.ValidationError('wrong date format in request', e)
+                raise custom_error(f'wrong date format in request {e}', 433)
 
         if delta < 0:
             # недоплата, сумма по УПД больше, чем внесено. (может стать отрицательным)
@@ -377,5 +378,56 @@ def compare_UPD_and_payments(
                 entity=data_for_save.entity
             )
             return instance
+
+
+def sub_upd_amount_if_correct(
+        instance: BaseDealEggsModel,
+        client: BuyerCardEggs | SellerCardEggs | LogicCardEggs,
+        data_for_save: PayOrderDataForSave,
+    ) -> BaseDealEggsModel:
+    """
+    Вычетает значение предыдущей упд при корректировке
+    """
+    json_key = data_for_save.doc_type + str(datetime.now())[:-7]
+    if isinstance(client, BuyerCardEggs):
+        if instance.deal_buyer_debt_UPD == 0:
+            raise custom_error('wrong json data in pay json in correct UPD, correct, but buyer has no UPD', 433)
+        else:
+            instance.deal_buyer_pay_amount += instance.deal_buyer_debt_UPD
+            instance.deal_buyer_debt_UPD = 0
+            instance.documents.deal_docs_links_json[json_key] = str(instance.documents.UPD_outgoing)
+    elif isinstance(client, SellerCardEggs):
+        if instance.deal_our_debt_UPD == 0:
+            raise custom_error('wrong json data in pay json in correct UPD, correct, but seller has no UPD', 433)
+        else:
+            instance.deal_our_pay_amount += instance.deal_our_debt_UPD
+            instance.deal_our_debt_UPD = 0
+            instance.documents.deal_docs_links_json[json_key] = str(instance.documents.UPD_incoming)
+    elif isinstance(client, LogicCardEggs):
+        if data_for_save.doc_type == 'application_contract_logic':
+            if instance.logic_our_debt_for_app_contract == 0:
+                raise custom_error('wrong json data in pay json in correct UPD, correct, but logic has no app cont', 433)
+            else:
+                instance.logic_our_pay_amount += instance.logic_our_debt_for_app_contract
+                instance.logic_our_debt_for_app_contract = 0
+                instance.documents.deal_docs_links_json[json_key] = str(instance.documents.application_contract_logic)
+        elif data_for_save.doc_type == 'UPD_logic':
+            if instance.logic_our_debt_UPD == 0:
+                raise custom_error('wrong json data in pay json in correct UPD, correct, but logic has no UPD', 433)
+            else:
+                instance.logic_our_pay_amount += instance.logic_our_debt_UPD
+                instance.logic_our_debt_UPD = 0
+                instance.documents.deal_docs_links_json[json_key] = str(instance.documents.UPD_logic)
+        else:
+            raise custom_error('wrong json data in pay json in correct UPD', 433)
+        instance.delivery_cost = 0
+    else:
+        raise custom_error('wrong json data in pay json in correct UPD', 433)
+    instance.documents.save()
+    return instance
+
+
+
+
 
 

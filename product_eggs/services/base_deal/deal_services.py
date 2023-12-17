@@ -1,10 +1,8 @@
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F, Q
-
-from rest_framework import serializers
 
 from product_eggs.models.base_client import LogicCardEggs
 from product_eggs.models.base_deal import BaseDealEggsModel
@@ -12,6 +10,7 @@ from product_eggs.models.additional_expense import AdditionalExpenseEggs
 from product_eggs.models.documents import DocumentsDealEggsModel
 from product_eggs.services.create_model import CreatorNewModel
 from product_eggs.serializers.additional_expense_serializers import AdditionalExpenseSerializer
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 
@@ -28,21 +27,29 @@ def check_relation_return_new_deal_docs(
     if sucess set deal status -> 1.
     """
     if instance.documents is None:
-        deal_doc_models = CreatorNewModel(
-            ('DocumentsDealEggsModel', 'OriginsDealEggs'))
-        deal_doc_models.create()
-        deal_doc_models.new_models[0].origins = deal_doc_models.new_models[1]
-        return  deal_doc_models.new_models[0]
+        origins_model = CreatorNewModel(
+            ('OriginsDealEggs',)
+        )
+        origins_model.create()
+        deal_documents_model = CreatorNewModel(
+            ('DocumentsDealEggsModel',),
+            edo_seller_documents=instance.seller.documents_contract.docs_for_edo,
+            edo_buyer_documents=instance.buyer.documents_contract.docs_for_edo,
+            # edo_logic_documents=instance.current_logic.documents_contract.docs_for_edo,
+            origins = origins_model.new_models[0],
+        )
+        deal_documents_model.create()
+        return  deal_documents_model.new_models[0]
     else:
-        raise serializers.ValidationError(
-            f'base model: {instance}, docs field has relation!')
+        raise custom_error(
+            f'base model: {instance}, docs field has relation!', 433)
 
 
 def delivery_by_seller_check_and_return_logic(instance: BaseDealEggsModel) -> LogicCardEggs:
     try:
         return LogicCardEggs.objects.get(inn=instance.seller.inn)
     except (ObjectDoesNotExist, KeyError):
-        raise serializers.ValidationError(
+        raise custom_error(
             'Доставка от продавца - ошибка: Указанный в просчете продавец не числится в базе перевозчиков. \
             Создайте перевозчика для данного продавца.')
 
@@ -53,8 +60,8 @@ def check_pre_status_for_create(
     Check previous status base model.
     """
     if instance.status != status:
-        serializers.ValidationError(
-            f'in model: {instance}, status: {status}, cant update model.')
+        raise custom_error(
+            f'in model: {instance}, status: {status}, cant update model.', 433)
 
 
 def get_additional_exp_detail(instance: BaseDealEggsModel) -> OrderedDict:
@@ -71,7 +78,7 @@ def status_check(instance: BaseDealEggsModel, status: list[int]) -> None:
     Check status calc, conf_calc, deal, complete_deal.
     """
     if instance.status not in status:
-        raise serializers.ValidationError(f'Check status base_model, entry data, instance: {instance}, status: {instance.status}')
+        raise custom_error(f'Check status base_model, entry data, instance: {instance}, status: {instance.status}', 433)
 
 
 def base_deal_logs_saver(
@@ -201,7 +208,8 @@ def search_payments(client_type: str, payment_date: datetime | str):
             logic_deals = BaseDealEggsModel.objects.exclude(
                 documents=None
             ).exclude(
-                Q(documents__UPD_logic='') #| Q(documents__payment_order_outcoming_logic='')
+                # Q(documents__UPD_logic='') #| Q(documents__payment_order_outcoming_logic='')
+                Q(documents__application_contract_logic='')
             ).exclude(
                 logic_our_pay_amount=0
             ).filter(
@@ -273,6 +281,15 @@ def finance_discipline_search(client_type: str, client_inn: str):
             return None
 
 
+def calc_expense_total_for_margin(cur_expense: AdditionalExpenseEggs) -> float:
+    """
+    добавляет к сумме по форме 2 -> 20 % для рассчета маржи
+    """
+    if cur_expense.expense_total_form_2:
+        result_form2 = 1.2 * cur_expense.expense_total_form_2
+    else:
+        result_form2 = 0
+    return cur_expense.expense_total_form_1 + result_form2
 
 
 

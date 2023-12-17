@@ -1,16 +1,15 @@
 from django.db import models
 from django.db.models.signals import post_delete
-from rest_framework import serializers
 
 from general_layout.balance.models.balance import BalanceBaseClient
-
 from product_eggs.models.base_client import BuyerCardEggs, LogicCardEggs, SellerCardEggs
 from product_eggs.models.entity import EntityEggs
 from product_eggs.models.tails import TailsContragentModelEggs
 from product_eggs.receivers import (
     change_client_entity_recever_delete
 )
-from product_eggs.services.tails_calc import calc_client_tail_debt
+from product_eggs.services.tails.tails_calc import calc_client_tail_debt
+from product_eggs.services.validationerror import custom_error
 from product_eggs.tasks.entity_client import change_client_entity_list
 
 
@@ -56,23 +55,19 @@ class BalanceBaseClientEggs(BalanceBaseClient):
         related_name='cur_balance',
         verbose_name='Перевозчик',
     )
-    # pay_type = models.PositiveSmallIntegerField(
-    #     verbose_name='Тип оплаты', choices=PAY_TYPE,
-    #     default=1,
-    # )
 
     def check_lock_relations(self):
         if self.client_seller != self.__client_seller:
-            raise serializers.ValidationError(
-                f'Balance model №{self.pk} wrong'
+            raise custom_error(
+                f'Balance model №{self.pk} wrong', 433
             )
         if self.client_buyer != self.__client_buyer:
-            raise serializers.ValidationError(
-                f'Balance model №{self.pk} wrong'
+            raise custom_error(
+                f'Balance model №{self.pk} wrong', 433
             )
         if self.client_logic != self.__client_logic:
-            raise serializers.ValidationError(
-                f'Balance model №{self.pk} wrong'
+            raise custom_error(
+                f'Balance model №{self.pk} wrong', 433
             )
 
     def __init__(self, *args, **kwargs):
@@ -84,7 +79,7 @@ class BalanceBaseClientEggs(BalanceBaseClient):
     def save(self, *args, **kwargs):
         creating = not bool(self.pk)
         if creating:
-            res =  super().save(*args, **kwargs)
+            res = super().save(*args, **kwargs)
             change_client_entity_list(self)
             return res
 

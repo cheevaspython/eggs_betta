@@ -1,5 +1,4 @@
-from rest_framework import serializers
-
+from datetime import datetime
 from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.permissions.validate_user import can_edit_deal_super_user
 from product_eggs.services.data_class import (
@@ -12,6 +11,7 @@ from product_eggs.services.messages.messages_services import (
     change_fileld_done_to_true, find_messages_where_base_deal_and_not_done,
     search_done_base_deal_messages_and_turn_off
 )
+from product_eggs.services.validationerror import custom_error
 from users.models import CustomUser
 
 
@@ -23,14 +23,14 @@ class DealStatusChanger():
             self,
             instance: BaseDealEggsModel,
             user: CustomUser,
+            close: str = '',
         ):
-
         if instance.status != 3:
-            raise serializers.ValidationError(
-                f'bas_deal_model status !=3 !!!'
-            )
+            raise custom_error(f'bas_deal_model status !=3 !!!', 433)
+
         self.instance = instance
         self.user = user
+        self.close = close
 
     def _check_status_conditions(self) -> str:
         """
@@ -44,11 +44,11 @@ class DealStatusChanger():
         if self.instance.deal_status_ready_to_change:
             if self.instance.deal_status == 0:
                 return 'new_deal'
-            elif self.instance.deal_status <= 8 and self.instance.deal_status_multi:
+            elif self.instance.deal_status <= 9 and self.instance.deal_status_multi:
                 return 'half_action'
-            elif self.instance.deal_status <= 8:
+            elif self.instance.deal_status <= 9:
                 return 'change'
-            elif self.instance.deal_status == 9:
+            elif self.instance.deal_status == 10 and self.close:
                 return 'complete'
             else:
                 return 'pass'
@@ -74,18 +74,19 @@ class DealStatusChanger():
                     self.instance.deal_status_ready_to_change = False
                     self.instance.save()
                 else:
-                    raise serializers.ValidationError(
-                        'You cant change status this deal, or deal status is 9 or im stupid coder')
+                    raise custom_error(
+                        'You cant change status this deal, or deal status is 9 or im stupid coder', 433)
             case 'change':
                 if self.check_user_to_can_change():
                     self._change_deal_status()
                     self._send_action()
                 else:
-                    raise serializers.ValidationError(
-                        'You cant change status this deal, or deal status is 9')
+                    raise custom_error(
+                        'You cant change status this deal, or deal status is 9', 433)
             case 'complete':
                 self.instance.status += 1
                 self.instance.deal_status += 1
+                self.instance.close_deal_date = datetime.strptime(self.close, "%d/%m/%Y")
                 search_done_base_deal_messages_and_turn_off(self.instance) #TODO
                 self.instance.save()
                 self.send_message_deal_complete()
@@ -148,6 +149,7 @@ class DealStatusChanger():
                         cur_action.owner)
                 )
                 action.create_message()
+                self.instance.save()
         elif isinstance(message_user, MessageUserForDealStatus):
             action = MessagesCreator(
                 BaseMessageForm(
@@ -157,7 +159,7 @@ class DealStatusChanger():
             )
             action.create_message()
         else:
-            raise serializers.ValidationError('wrong return data in _send_action deal changer')
+            raise custom_error('wrong return data in _send_action deal changer', 433)
 
     def _change_deal_status(self):
         """
@@ -194,7 +196,7 @@ class DealStatusChanger():
                             return True
                 return False
             except IndexError as e:
-                raise serializers.ValidationError(f'you havent some users role! {e}')
+                raise custom_error(f'you havent some users role! {e}', 433)
 
         elif isinstance(message_user, MessageUserForDealStatus):
             try:
@@ -203,7 +205,7 @@ class DealStatusChanger():
                 else:
                     return True if self.user in message_user.owner else False
             except IndexError as e:
-                raise serializers.ValidationError(f'you havent some users role! {e}')
+                raise custom_error(f'you havent some users role! {e}', 433)
 
     @try_decorator_param(('AttributeError',))
     def _get_message_and_user(self) -> MessageUserForDealStatus | tuple[MessageUserForDealStatus]:
@@ -253,7 +255,7 @@ class DealStatusChanger():
                         f'По сделке №{self.instance.pk} произведена разгрузка и  \
                         загружена исходящяя подписанная УПД, загрузите пп для перевозчика, \
                         проверьте наличие всех необходимых для бухгалтерии сканов \
-                        документов и переведите сделку в статус "закрытой"',
+                        документов',
                         CustomUser.objects.filter(role=7),
                     ),
                 }
@@ -307,7 +309,7 @@ class DealStatusChanger():
                         загрузите в систему данные по исходящей УПД (ЭДО), \
                         загрузите пп для перевозчика, \
                         проверьте наличие всех необходимых для бухгалтерии сканов \
-                        документов и переведите сделку в статус "закрытой"',
+                        документов',
                         CustomUser.objects.filter(role=7),
                     ),
                 }
@@ -317,6 +319,6 @@ class DealStatusChanger():
                 return result
 
             except Exception as e:
-                raise serializers.ValidationError(f'status = {self.instance.deal_status}, something wrong, error -> {e}')
+                raise custom_error(f'status = {self.instance.deal_status}, something wrong, error -> {e}', 433)
         else:
-            raise serializers.ValidationError(f'deal -> {self.instance.pk} errror in message model seller/buyer manager == None!')
+            raise custom_error(f'deal -> {self.instance.pk} errror in message model seller/buyer manager == None!', 433)

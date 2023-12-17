@@ -1,6 +1,6 @@
 from typing import Optional
+
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import serializers
 
 from product_eggs.models.balance import BalanceBaseClientEggs
 from product_eggs.models.base_client import LogicCardEggs, SellerCardEggs, BuyerCardEggs
@@ -8,6 +8,7 @@ from product_eggs.models.base_deal import BaseDealEggsModel
 from product_eggs.models.documents import DocumentsContractEggsModel, DocumentsDealEggsModel
 from product_eggs.services.balance import get_balance_for_tail_pk
 from product_eggs.services.decorators import try_decorator_param
+from product_eggs.services.validationerror import custom_error
 
 CLIENT_TYPES_BOOK = {
     'seller': 'SellerCardEggs',
@@ -51,7 +52,7 @@ def get_client_for_inn(
         case _:
             print('client_type is wrong')
 
-    raise serializers.ValidationError('inn client/logic is invalid, check entry data')
+    raise custom_error('inn client/logic is invalid, check entry data', 433)
 
 
 def get_client_for_doc_contract(
@@ -84,7 +85,7 @@ def get_client_for_doc_contract(
         case _:
             print('client_type is wrong')
 
-    raise serializers.ValidationError('doc_contract_id is invalid, check entry data')
+    raise custom_error('doc_contract_id is invalid, check entry data', 433)
 
 
 def get_client_for_tail_pk(
@@ -102,8 +103,8 @@ def get_client_for_tail_pk(
     elif cur_balance.client_logic:
         return cur_balance.client_logic
     else:
-        raise serializers.ValidationError(
-            'tail_pk for client_model is invalid, check entry data')
+        raise custom_error(
+            'tail_pk for client_model is invalid, check entry data', 433)
 
 
 @try_decorator_param(('KeyError',))
@@ -135,9 +136,9 @@ def check_client_type_and_model(client: SellerCardEggs | BuyerCardEggs | LogicCa
     Сравнивает указанный тип и самого клиента.
     """
     if client_type not in CLIENT_TYPES_BOOK.keys():
-        raise serializers.ValidationError('wrong client type')
+        raise custom_error('wrong client type', 433)
     if CLIENT_TYPES_BOOK[client_type] != client.__class__.__name__:
-        raise serializers.ValidationError('client type not valid for client model')
+        raise custom_error('client type not valid for client model', 433)
 
 
 def return_client_type(client: SellerCardEggs | BuyerCardEggs | LogicCardEggs) -> str:
@@ -145,6 +146,9 @@ def return_client_type(client: SellerCardEggs | BuyerCardEggs | LogicCardEggs) -
 
 
 def get_balance_model_for_client_and_entity(client_inn: str, entity_inn: str) -> BalanceBaseClientEggs:
+    """
+    Получает модель баланса по инн клиента и инн юр лица
+    """
     try:
         return BalanceBaseClientEggs.objects.get(client_buyer=client_inn, entity__inn=entity_inn)
     except ObjectDoesNotExist:
@@ -158,7 +162,7 @@ def get_balance_model_for_client_and_entity(client_inn: str, entity_inn: str) ->
     except ObjectDoesNotExist:
         pass
 
-    raise serializers.ValidationError('inn client+entity: wrong in get_balance_model_for_client_and_entity')
+    raise custom_error('inn client+entity: wrong in get_balance_model_for_client_and_entity', 433)
 
 
 

@@ -1,9 +1,8 @@
-from datetime import datetime
 import uuid
+from datetime import datetime
 from collections.abc import Iterable
 from dataclasses import asdict
 from typing import Union
-from rest_framework import serializers
 
 from product_eggs.models.documents import (
     DocumentsContractEggsModel, DocumentsDealEggsModel
@@ -23,6 +22,8 @@ from product_eggs.services.data_class import (
 )
 from product_eggs.services.messages.messages_library import MessageLibrarrySend
 from product_eggs.services.documents.documents_get import DataNumberJsonSaver
+from product_eggs.services.validationerror import custom_error
+from product_eggs.tasks.deal_status_closer import check_and_close_deal
 
 from users.models import CustomUser
 
@@ -57,22 +58,22 @@ class DealDocumentsPaymentParser():
         if self.cash:
             match self.pay_data['client_type']:
                 case 'seller':
-                    raise serializers.ValidationError('(seller) We pay to seller only form 1!')
+                    raise custom_error('(seller) We pay to seller only form 1!', 433)
                 case 'buyer':
                     if not self.deal.cash:
-                        raise serializers.ValidationError('(buyer) tmp_json -> cash, but deal.cash false!')
+                        raise custom_error('(buyer) tmp_json -> cash, but deal.cash false!', 433)
                 case 'logic':
                     if self.deal.delivery_form_payment != 3:
-                        raise serializers.ValidationError('(logic) tmp_json -> cash, but deal.delivery_form_payment !=3 !')
+                        raise custom_error('(logic) tmp_json -> cash, but deal.delivery_form_payment !=3 !', 433)
                 case _:
-                    raise serializers.ValidationError('wronf client_type in DealDocumentsPaymentParser')
+                    raise custom_error('wronf client_type in DealDocumentsPaymentParser', 433)
 
     def _check_entry_data(self) -> DocumentsContractEggsModel:
         self.pay_client  = get_client_for_inn(self.pay_data['inn'], self.pay_data['client_type'])
         if isinstance(self.pay_client, Union[SellerCardEggs, BuyerCardEggs, LogicCardEggs]) and self.pay_client.documents_contract:
             return self.pay_client.documents_contract
         else:
-            raise serializers.ValidationError('pay client not found')
+            raise custom_error('pay client not found', 433)
 
     def _update_pay_data(self) -> None:
         self.pay_data['user'] = self.user.pk
@@ -82,7 +83,7 @@ class DealDocumentsPaymentParser():
         try:
             self.pay_data['pay_quantity'] = float(self.pay_data['pay_quantity'])
         except ValueError as e:
-            raise serializers.ValidationError('wrong doc type in tmp_json', e)
+            raise custom_error(f'wrong doc type in tmp_json {e}', 433)
 
     def _convert_pay_data(self) -> None:
         self.converted_pay_data = PayOrderDataForSave(**self.pay_data)
@@ -113,6 +114,7 @@ class DealDocumentsPaymentParser():
         self._deal_service_create_action()
         self._update_model_field()
         self.deal_service_object.deal.save()
+        check_and_close_deal(self.deal_service_object.deal, self.user, self.converted_pay_data.date)
 
 
 class MultiDocumentsPaymentParser():
@@ -148,7 +150,7 @@ class MultiDocumentsPaymentParser():
             if get_client_for_inn(self.pay_order_multi.inn, self.pay_order_multi.client_type):
                 self.client = get_client_for_inn(self.pay_order_multi.inn, self.pay_order_multi.client_type)
                 return True
-        raise serializers.ValidationError('wrong data in tmp_multy_json')
+        raise custom_error('wrong data in tmp_multy_json', 433)
 
     @try_decorator_param(('AttributeError',))
     def _get_documents_contract(self) -> None:
@@ -157,8 +159,8 @@ class MultiDocumentsPaymentParser():
                 self.doc_contract = DocumentsContractEggsModel.objects.get(
                     pk=self.client.documents_contract.pk)
         else:
-            raise serializers.ValidationError(
-                'Error in MultyDocumentsPaymentParser, wrong inn client or doc_contract')
+            raise custom_error(
+                'Error in MultyDocumentsPaymentParser, wrong inn client or doc_contract', 433)
 
     @try_decorator_param(('ValueError', 'AttributeError', ))
     def _construct_other_pay(self, cur_deal_pay: OtherPays) -> PrePayOrderDataForSave:
@@ -201,7 +203,7 @@ class MultiDocumentsPaymentParser():
         self._send_message_to_finance_manager()
 
     def _tail_save(self) -> None:
-        from product_eggs.services.tails import TailsTreatment
+        from product_eggs.services.tails.tails import TailsTreatment
         if self.client:
             TailsTreatment(
                 self.pay_order_multi,
@@ -226,7 +228,9 @@ class MultiDocumentsPaymentParser():
             )
             saver_obj.multy_pay_json_saver()
         else:
-            raise serializers.ValidationError('Multi pay data wrong, cant get doc_contract instance or get wrong model')
+            raise custom_error(
+                'Multi pay data wrong, cant get doc_contract instance or get wrong model', 433
+            )
 
     def main(self):
         """
